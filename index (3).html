@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0e17">
+<title>TRADENOVA — Trading desde cero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TRADENOVA — sistema de diseño
+   Identidad: diario financiero nocturno.
+   Serif editorial (Fraunces) para titulares,
+   sans (Inter) para lectura, mono (IBM Plex Mono) para datos.
+   ========================================================= */
+
+:root{
+  /* color */
+  --ink:        #0a0e17;
+  --panel:      #10151f;
+  --panel-2:    #141b29;
+  --panel-3:    #182238;
+  --hairline:   rgba(233,238,248,0.09);
+  --hairline-strong: rgba(233,238,248,0.16);
+
+  --text:       #eef1f6;
+  --text-muted: #9aa3b8;
+  --text-faint: #616c85;
+
+  --brass:      #d3a75c;   /* acento primario — cálido, tipo ticker de bolsa */
+  --brass-dim:  #9c7c42;
+  --teal:       #55b3ac;   /* acento secundario — enlaces, foco */
+  --blue:       #7c93c9;   /* tercer acento — sesión de Nueva York */
+  --up:         #3fc98b;
+  --down:       #ef5b62;
+
+  /* type */
+  --f-display: "Fraunces", Georgia, serif;
+  --f-body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* layout */
+  --maxw: 1120px;
+  --pad: clamp(20px, 5vw, 64px);
+  --radius-s: 3px;
+  --radius-m: 6px;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth; scroll-padding-top:84px;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+}
+
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--f-body);
+  font-size:16px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+h1,h2,h3{
+  font-family:var(--f-display);
+  font-weight:500;
+  color:var(--text);
+  margin:0;
+  letter-spacing:-0.01em;
+}
+
+p{margin:0;}
+a{color:inherit; text-decoration:none;}
+b,strong{font-weight:600;}
+small{font-size:0.8em;}
+
+::selection{background:var(--brass); color:var(--ink);}
+
+:focus-visible{
+  outline:2px solid var(--teal);
+  outline-offset:3px;
+  border-radius:2px;
+}
+
+/* faint grain, purely textural */
+.noise{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:0.035; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+main{position:relative; z-index:1;}
+
+/* ---------- topbar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--pad);
+  height:64px;
+  background:rgba(10,14,23,0.82);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--hairline);
+}
+.logo{
+  font-family:var(--f-display);
+  font-size:1.05rem;
+  font-weight:500;
+  letter-spacing:0.02em;
+  color:var(--text);
+}
+.logo span{color:var(--brass);}
+
+.top-actions{display:flex; align-items:center; gap:18px;}
+.progress-mini{
+  width:120px; height:2px; background:var(--hairline-strong);
+  border-radius:2px; overflow:hidden; display:none;
+}
+.progress-mini i{
+  display:block; height:100%; width:0%;
+  background:var(--brass);
+  transition:width 0.12s linear;
+}
+@media (min-width:720px){ .progress-mini{display:block;} }
+
+.icon-btn{
+  background:none; border:1px solid var(--hairline-strong);
+  color:var(--text); width:38px; height:38px; border-radius:var(--radius-s);
+  font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color 0.15s ease, background 0.15s ease;
+}
+.icon-btn:hover{border-color:var(--brass-dim); background:var(--panel-2);}
+
+/* ---------- side nav ---------- */
+#sideNav{
+  position:fixed; top:0; right:0; height:100%; width:min(320px, 86vw);
+  background:var(--panel); border-left:1px solid var(--hairline);
+  z-index:60; padding:20px 0;
+  transform:translateX(100%);
+  transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+  display:flex; flex-direction:column; overflow-y:auto;
+}
+#sideNav.open{transform:translateX(0);}
+.nav-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px 16px; margin-bottom:8px;
+  border-bottom:1px solid var(--hairline);
+  font-family:var(--f-display); font-size:1rem;
+}
+#closeBtn{
+  background:none; border:0; color:var(--text-muted);
+  font-size:1.4rem; line-height:1; cursor:pointer; padding:4px 8px;
+}
+#closeBtn:hover{color:var(--text);}
+#sideNav a{
+  display:flex; align-items:baseline; gap:12px;
+  padding:11px 22px;
+  font-size:0.94rem; color:var(--text-muted);
+  border-left:2px solid transparent;
+  transition:color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+#sideNav a:hover, #sideNav a.active{
+  color:var(--text); background:var(--panel-2); border-left-color:var(--brass);
+}
+#sideNav a:first-child{font-family:var(--f-mono); font-size:1rem;}
+#sideNav a span:first-of-type{
+  font-family:var(--f-mono); font-size:0.78rem; color:var(--text-faint); width:18px;
+}
+
+#overlay{
+  position:fixed; inset:0; background:rgba(6,8,13,0.6);
+  opacity:0; pointer-events:none; z-index:50;
+  transition:opacity 0.28s ease;
+}
+#overlay.open{opacity:1; pointer-events:auto;}
+
+/* ---------- sections, generic ---------- */
+section{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:96px var(--pad);
+  border-bottom:1px solid var(--hairline);
+}
+section:last-of-type{border-bottom:none;}
+
+.section-head{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:24px; margin-bottom:44px;
+}
+.section-head small{
+  display:block; font-family:var(--f-mono); font-size:0.72rem;
+  letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--brass); margin-bottom:10px;
+}
+.section-head h2{font-size:clamp(1.6rem, 3vw, 2.15rem);}
+.section-head .num{
+  font-family:var(--f-mono); font-size:0.85rem; color:var(--text-faint);
+  border:1px solid var(--hairline-strong); border-radius:100px;
+  padding:5px 12px; flex-shrink:0;
+}
+
+.intro{
+  max-width:62ch; color:var(--text-muted); font-size:1.05rem;
+  line-height:1.7; margin-bottom:40px;
+}
+
+/* ---------- hero ---------- */
+.hero{
+  display:grid; grid-template-columns:1.1fr 0.9fr;
+  gap:56px; align-items:center;
+  padding-top:72px; padding-bottom:0; border-bottom:none;
+}
+@media (max-width:860px){ .hero{grid-template-columns:1fr;} }
+
+.pill{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--f-mono); font-size:0.72rem; letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--text-muted);
+  border:1px solid var(--hairline-strong); border-radius:100px;
+  padding:6px 14px 6px 10px; margin-bottom:28px;
+}
+.pill .dot{width:6px; height:6px; border-radius:50%; background:var(--up);}
+
+.hero-copy h1{
+  font-size:clamp(2.6rem, 6vw, 4.4rem);
+  line-height:1.02;
+}
+.hero-copy h1 em{
+  font-style:italic; color:var(--brass); font-weight:500;
+}
+.hero-copy p{
+  margin-top:22px; max-width:46ch;
+  font-size:1.12rem; color:var(--text-muted); line-height:1.65;
+}
+
+.hero-buttons{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap;}
+.hero-buttons a{
+  font-size:0.96rem; font-weight:600; padding:13px 24px;
+  border-radius:var(--radius-s);
+  transition:transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.hero-buttons .primary{
+  background:var(--brass); color:#181206;
+}
+.hero-buttons .primary b{font-weight:600; margin-left:2px;}
+.hero-buttons .primary:hover{background:#e3ba6a; transform:translateY(-1px);}
+.hero-buttons .ghost{
+  border:1px solid var(--hairline-strong); color:var(--text);
+}
+.hero-buttons .ghost:hover{border-color:var(--text-muted); transform:translateY(-1px);}
+
+/* market card */
+.market-card{
+  background:var(--panel); border:1px solid var(--hairline-strong);
+  border-radius:var(--radius-m); padding:24px;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,0.6);
+}
+.market-top{
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:var(--f-mono); font-size:0.82rem;
+}
+.market-top span{color:var(--text); font-weight:600; letter-spacing:0.02em;}
+.market-top small{
+  color:var(--text-faint); letter-spacing:0.1em; font-size:0.68rem;
+}
+.price{
+  font-family:var(--f-mono); font-size:2.1rem; font-weight:500;
+  margin-top:14px; color:var(--text); display:flex; align-items:baseline; gap:10px;
+}
+.price span{font-size:0.95rem; color:var(--up); font-weight:500;}
+
+.chart{position:relative; margin-top:18px; height:120px;}
+.chart svg{width:100%; height:100%; display:block;}
+.chart .area{fill:var(--brass); stroke:none;}
+.chart .line{
+  fill:none; stroke:var(--brass); stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:900; stroke-dashoffset:900;
+  animation:draw 1.6s cubic-bezier(.4,0,.2,1) 0.2s forwards;
+}
+@media (prefers-reduced-motion: reduce){ .chart .line{stroke-dashoffset:0; animation:none;} }
+@keyframes draw{ to{stroke-dashoffset:0;} }
+.chart-label{
+  position:absolute; top:0; left:0;
+  font-family:var(--f-mono); font-size:0.65rem; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.market-bottom{
+  display:flex; gap:18px; margin-top:16px; padding-top:16px;
+  border-top:1px solid var(--hairline);
+  font-family:var(--f-mono); font-size:0.76rem; color:var(--text-faint);
+}
+.market-bottom b{color:var(--text-muted); font-weight:500;}
+
+.disclaimer{
+  max-width:var(--maxw); margin:56px auto 0; padding:14px var(--pad);
+  display:flex; gap:10px; align-items:flex-start;
+  font-size:0.86rem; color:var(--text-faint);
+  border-top:1px solid var(--hairline);
+}
+.disclaimer span{max-width:70ch;}
+
+/* ---------- cards / features ---------- */
+.cards{display:grid; gap:1px; background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;}
+.cards.four{grid-template-columns:repeat(4,1fr);}
+.cards.three{grid-template-columns:repeat(3,1fr);}
+@media (max-width:860px){ .cards.four{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:560px){ .cards.four, .cards.three{grid-template-columns:1fr;} }
+
+.feature{
+  background:var(--panel); padding:28px 24px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.feature .ico{
+  font-family:var(--f-mono); font-size:1.2rem; color:var(--brass);
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-s);
+}
+.feature h3{font-size:1.02rem; font-weight:600; font-family:var(--f-body); color:var(--text);}
+.feature p{color:var(--text-muted); font-size:0.92rem; line-height:1.55;}
+.feature .mini-label{
+  font-family:var(--f-mono); font-size:0.68rem; letter-spacing:0.12em;
+  color:var(--text-faint);
+}
+
+/* compare (long/short) */
+.compare{
+  display:grid; grid-template-columns:1fr auto 1fr; gap:24px; align-items:center;
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m); padding:32px;
+}
+@media (max-width:640px){ .compare{grid-template-columns:1fr;} .compare .vs{justify-self:center;} }
+.compare > div:not(.vs){display:flex; flex-direction:column; gap:8px;}
+.compare strong{font-family:var(--f-display); font-weight:500; font-size:1.2rem;}
+.compare p{color:var(--text-muted); font-size:0.92rem;}
+.tag{
+  display:inline-block; width:fit-content; font-family:var(--f-mono);
+  font-size:0.7rem; letter-spacing:0.1em; padding:4px 10px; border-radius:100px;
+}
+.tag.buy{background:rgba(63,201,139,0.14); color:var(--up);}
+.tag.sell{background:rgba(239,91,98,0.14); color:var(--down);}
+.vs{font-family:var(--f-mono); color:var(--text-faint); font-size:0.8rem;}
+
+/* trade flow */
+.trade-flow{
+  display:flex; align-items:stretch; gap:0; flex-wrap:wrap;
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m); overflow:hidden;
+}
+.trade-flow > div{
+  flex:1 1 180px; padding:26px 22px; background:var(--panel);
+  display:flex; flex-direction:column; gap:6px;
+}
+.trade-flow b{font-family:var(--f-mono); color:var(--brass); font-size:0.8rem;}
+.trade-flow span{font-weight:600; font-size:1.02rem;}
+.trade-flow p{color:var(--text-muted); font-size:0.88rem;}
+.trade-flow i{
+  display:flex; align-items:center; justify-content:center;
+  font-style:normal; color:var(--text-faint); flex:0 0 auto; width:44px;
+  background:var(--panel-2);
+}
+@media (max-width:640px){ .trade-flow i{width:100%; padding:6px;} }
+
+.example-card{
+  margin-top:24px; display:flex; gap:20px; align-items:flex-start;
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m);
+  padding:26px; background:var(--panel);
+}
+.example-icon{
+  font-family:var(--f-display); font-size:1.4rem; color:var(--brass);
+  width:46px; height:46px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--hairline-strong); border-radius:50%;
+}
+.example-card small{
+  font-family:var(--f-mono); letter-spacing:0.1em; color:var(--text-faint); font-size:0.68rem;
+}
+.example-card h3{font-size:1.1rem; margin-top:4px;}
+.example-card p{color:var(--text-muted); margin-top:8px; font-size:0.94rem; line-height:1.6;}
+.example-card strong{color:var(--brass);}
+
+/* risk */
+.risk-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:1px; background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;}
+@media (max-width:720px){ .risk-grid{grid-template-columns:1fr;} }
+.risk-main{background:var(--panel); padding:32px;}
+.risk-main small{font-family:var(--f-mono); letter-spacing:0.1em; color:var(--text-faint); font-size:0.68rem;}
+.formula{
+  font-family:var(--f-mono); font-size:1.3rem; margin-top:16px; color:var(--text);
+}
+.formula-result{
+  font-family:var(--f-mono); font-size:1rem; color:var(--text-muted); margin-top:10px;
+}
+.formula-result strong{color:var(--up);}
+.risk-list{background:var(--panel); display:flex; flex-direction:column;}
+.risk-list > div{padding:18px 28px; border-top:1px solid var(--hairline);}
+.risk-list > div:first-child{border-top:none;}
+.risk-list b{display:block; font-size:0.95rem; margin-bottom:4px;}
+.risk-list span{color:var(--text-muted); font-size:0.88rem;}
+
+/* sessions timeline */
+.sessions{
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m);
+  padding:32px 32px 24px;
+}
+.sessions-row{display:flex; align-items:center; gap:18px; margin-bottom:16px;}
+.sessions-row .label{
+  width:112px; flex-shrink:0; font-family:var(--f-mono); font-size:0.82rem; color:var(--text-muted);
+}
+.sessions-track{position:relative; flex:1; height:10px; background:var(--panel-2); border-radius:100px;}
+.sessions-bar{position:absolute; top:0; height:100%; border-radius:100px;}
+.s-asia{background:var(--teal);}
+.s-london{background:var(--brass);}
+.s-ny{background:var(--blue);}
+.sessions-axis{
+  display:flex; justify-content:space-between; margin-top:6px; padding-left:130px;
+  font-family:var(--f-mono); font-size:0.68rem; color:var(--text-faint);
+}
+@media (max-width:640px){
+  .sessions-row .label{width:78px; font-size:0.72rem;}
+  .sessions-axis{padding-left:96px;}
+}
+
+/* position size calculator */
+.calculator{
+  margin-top:24px; border:1px solid var(--hairline-strong); border-radius:var(--radius-m); padding:32px;
+}
+@media (max-width:480px){ .calculator{padding:22px;} }
+.calc-head small{font-family:var(--f-mono); letter-spacing:0.1em; color:var(--text-faint); font-size:0.68rem;}
+.calc-head h3{font-size:1.15rem; margin-top:6px;}
+.calc-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:22px;
+}
+@media (max-width:760px){ .calc-grid{grid-template-columns:repeat(2,1fr);} }
+.calc-grid label{
+  display:flex; flex-direction:column; gap:8px; min-width:0;
+  font-size:0.8rem; color:var(--text-muted);
+}
+.calc-grid input{
+  width:100%; min-width:0; background:var(--panel-2); border:1px solid var(--hairline-strong);
+  border-radius:var(--radius-s); color:var(--text); padding:10px 12px;
+  font-family:var(--f-mono); font-size:0.94rem;
+}
+@media (max-width:480px){ .calc-grid{grid-template-columns:1fr;} }
+.calc-grid input:focus{border-color:var(--teal); outline:none;}
+.calc-result{
+  display:flex; gap:40px; margin-top:26px; padding-top:22px;
+  border-top:1px solid var(--hairline); flex-wrap:wrap;
+}
+.calc-result span{
+  display:block; font-family:var(--f-mono); font-size:0.72rem; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--text-faint); margin-bottom:6px;
+}
+.calc-result b{
+  font-family:var(--f-mono); font-size:1.5rem; font-weight:500; color:var(--brass);
+}
+.calc-note{color:var(--text-faint); font-size:0.8rem; margin-top:18px; max-width:70ch; line-height:1.5;}
+
+/* broker checklist */
+.checklist{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+  background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;
+}
+@media (max-width:640px){ .checklist{grid-template-columns:1fr;} }
+.checklist > div{
+  background:var(--panel); padding:20px 22px; display:flex; gap:14px; align-items:flex-start;
+}
+.checklist i{
+  font-style:normal; color:var(--up); font-family:var(--f-mono); font-size:0.95rem; flex-shrink:0; margin-top:1px;
+}
+.checklist b{display:block; margin-bottom:4px; font-size:0.96rem;}
+.checklist p{color:var(--text-muted); font-size:0.88rem; line-height:1.5;}
+
+/* trading journal table */
+.journal-table{
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m);
+  overflow-x:auto;
+}
+.journal-row{
+  display:grid; grid-template-columns:76px 96px 88px 64px 84px 1fr; gap:12px; align-items:center;
+  padding:14px 22px; border-top:1px solid var(--hairline);
+  font-size:0.88rem; min-width:620px; background:var(--panel);
+}
+.journal-row:first-child{border-top:none;}
+.journal-head{
+  background:var(--panel-2); font-family:var(--f-mono); font-size:0.68rem;
+  letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint);
+}
+.journal-row .tag{justify-self:start;}
+.journal-row .pos{color:var(--up); font-family:var(--f-mono); font-weight:600;}
+.journal-row .neg{color:var(--down); font-family:var(--f-mono); font-weight:600;}
+
+@media (max-width:640px){
+  .journal-table{overflow-x:visible;}
+  .journal-head{display:none;}
+  .journal-row{
+    grid-template-columns:1fr 1fr; gap:10px 14px;
+    min-width:0; padding:16px 18px;
+  }
+  .journal-row span{display:flex; flex-direction:column; gap:3px;}
+  .journal-row span::before{
+    content:attr(data-label);
+    font-family:var(--f-mono); font-size:0.62rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-faint);
+  }
+  .journal-row span:last-child{grid-column:1/-1;}
+}
+
+/* quiz */
+.quiz-card{
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m); padding:36px;
+}
+.quiz-progress{display:flex; align-items:center; gap:16px; margin-bottom:24px;}
+.quiz-progress span{
+  font-family:var(--f-mono); font-size:0.76rem; color:var(--text-faint); flex-shrink:0;
+}
+.quiz-bar{flex:1; height:4px; background:var(--panel-2); border-radius:100px; overflow:hidden;}
+.quiz-bar i{display:block; height:100%; width:0%; background:var(--brass); transition:width 0.3s ease;}
+.quiz-card h3{font-size:1.3rem; line-height:1.4; max-width:60ch;}
+.quiz-options{display:flex; flex-direction:column; gap:10px; margin-top:24px;}
+.quiz-option{
+  text-align:left; width:100%; background:var(--panel-2);
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-s);
+  color:var(--text); padding:14px 18px; font-family:var(--f-body);
+  font-size:0.94rem; cursor:pointer; transition:border-color 0.15s ease, background 0.15s ease;
+}
+.quiz-option:hover:not(:disabled){border-color:var(--text-muted);}
+.quiz-option:disabled{cursor:default;}
+.quiz-option.correct{border-color:var(--up); background:rgba(63,201,139,0.1); color:var(--up);}
+.quiz-option.incorrect{border-color:var(--down); background:rgba(239,91,98,0.1); color:var(--down);}
+.quiz-feedback{
+  margin-top:18px; font-size:0.9rem; color:var(--text-muted); line-height:1.6; min-height:1.2em;
+}
+.quiz-actions{margin-top:22px;}
+.ghost-btn{
+  background:var(--brass); color:#181206; border:none; border-radius:var(--radius-s);
+  padding:12px 26px; font-size:0.92rem; font-weight:600; font-family:var(--f-body);
+  cursor:pointer; transition:opacity 0.15s ease, transform 0.15s ease;
+}
+.ghost-btn:hover:not(:disabled){transform:translateY(-1px);}
+.ghost-btn:disabled{opacity:0.35; cursor:not-allowed;}
+.quiz-result{text-align:left;}
+.quiz-result .score{
+  font-family:var(--f-mono); font-size:2.6rem; color:var(--brass); margin:6px 0 12px;
+}
+.quiz-result p{color:var(--text-muted); max-width:56ch; line-height:1.6;}
+
+/* candles demo */
+.candle-demo{
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m);
+  padding:32px; margin-bottom:28px;
+}
+.candles{
+  display:flex; align-items:flex-end; justify-content:center; gap:26px;
+  height:140px;
+}
+.candles i{
+  display:block; width:14px; position:relative; border-radius:2px;
+  background:var(--up);
+}
+.candles i::before{
+  content:""; position:absolute; left:50%; top:-16px; bottom:-16px;
+  width:2px; background:inherit; transform:translateX(-50%);
+}
+.candles .c1{height:52px; align-self:flex-end;}
+.candles .c2{height:78px; background:var(--down);}
+.candles .c3{height:38px;}
+.candles .c4{height:96px;}
+.candles .c5{height:60px; background:var(--down);}
+.legend{
+  display:flex; justify-content:center; gap:22px; margin-top:28px;
+  font-family:var(--f-mono); font-size:0.76rem; color:var(--text-faint);
+}
+.legend span{display:flex; align-items:center; gap:7px;}
+.legend i{width:9px; height:9px; border-radius:2px; background:var(--brass); display:block;}
+
+/* tool grid */
+.tool-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+  background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;
+}
+@media (max-width:720px){ .tool-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:480px){ .tool-grid{grid-template-columns:1fr;} }
+.tool-grid > div{background:var(--panel); padding:22px 24px;}
+.tool-grid b{font-family:var(--f-mono); color:var(--brass); font-size:0.92rem;}
+.tool-grid span{display:block; margin-top:8px; color:var(--text-muted); font-size:0.88rem; line-height:1.5;}
+
+/* news board */
+.news-board{
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m);
+  overflow:hidden; margin-bottom:28px;
+}
+.news-title{
+  display:flex; justify-content:space-between; padding:14px 22px;
+  background:var(--panel-2); font-family:var(--f-mono);
+  font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);
+}
+.news-row{
+  display:grid; grid-template-columns:70px 1fr auto; gap:16px; align-items:center;
+  padding:16px 22px; border-top:1px solid var(--hairline); background:var(--panel);
+}
+.news-row b{font-family:var(--f-mono); color:var(--text-muted); font-size:0.86rem;}
+.news-row span{font-size:0.96rem;}
+.news-row em{
+  font-style:normal; font-family:var(--f-mono); font-size:0.68rem; letter-spacing:0.08em;
+  padding:4px 10px; border-radius:100px; justify-self:end;
+  background:rgba(211,167,92,0.14); color:var(--brass);
+}
+
+/* psychology */
+.psych-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+@media (max-width:860px){ .psych-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:480px){ .psych-grid{grid-template-columns:1fr;} }
+.psych-grid > div{
+  border-top:2px solid var(--hairline-strong); padding-top:16px;
+}
+.psych-grid span{
+  font-family:var(--f-mono); color:var(--text-faint); font-size:0.78rem;
+}
+.psych-grid b{display:block; font-size:1.05rem; margin:8px 0 6px; font-family:var(--f-display); font-weight:500;}
+.psych-grid p{color:var(--text-muted); font-size:0.9rem; line-height:1.55;}
+
+/* rules (strategy checklist) */
+.rules{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;}
+@media (max-width:760px){ .rules{grid-template-columns:repeat(2,1fr);} }
+.rules > div{background:var(--panel); padding:22px;}
+.rules span{font-family:var(--f-mono); color:var(--brass); font-size:0.78rem;}
+.rules b{display:block; margin:8px 0 4px; font-size:0.98rem;}
+.rules p{color:var(--text-muted); font-size:0.86rem;}
+
+/* process */
+.process{
+  display:flex; align-items:center; gap:0; flex-wrap:wrap;
+  margin-bottom:28px;
+}
+.process span{
+  font-family:var(--f-mono); font-size:0.8rem; letter-spacing:0.08em;
+  padding:12px 20px; border:1px solid var(--hairline-strong); border-radius:100px;
+  color:var(--text-muted);
+}
+.process i{
+  font-style:normal; color:var(--text-faint); padding:0 14px;
+}
+
+/* mistakes */
+.mistakes{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;}
+@media (max-width:640px){ .mistakes{grid-template-columns:1fr;} }
+.mistakes > div{
+  background:var(--panel); padding:18px 22px; display:flex; gap:12px; align-items:flex-start;
+  font-size:0.92rem; color:var(--down); font-family:var(--f-mono);
+}
+.mistakes > div span{color:var(--text-muted); font-family:var(--f-body); font-size:0.92rem;}
+
+/* roadmap */
+.roadmap{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+}
+@media (max-width:760px){ .roadmap{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:480px){ .roadmap{grid-template-columns:1fr;} }
+.roadmap > div{
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-m);
+  padding:22px; position:relative;
+}
+.roadmap strong{
+  font-family:var(--f-mono); color:var(--text-faint); font-size:0.85rem;
+}
+.roadmap h3{font-size:1.05rem; margin:10px 0 6px;}
+.roadmap p{color:var(--text-muted); font-size:0.88rem;}
+.roadmap .active{
+  border-color:var(--brass); background:rgba(211,167,92,0.06);
+}
+.roadmap .active strong{color:var(--brass);}
+
+/* glossary */
+.search{
+  width:100%; max-width:420px; background:var(--panel);
+  border:1px solid var(--hairline-strong); border-radius:var(--radius-s);
+  color:var(--text); padding:12px 16px; font-family:var(--f-body);
+  font-size:0.94rem; margin-bottom:28px;
+}
+.search::placeholder{color:var(--text-faint);}
+.search:focus{border-color:var(--teal); outline:none;}
+
+.terms{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+  background:var(--hairline); border:1px solid var(--hairline); border-radius:var(--radius-m); overflow:hidden;
+}
+@media (max-width:640px){ .terms{grid-template-columns:1fr;} }
+.term{background:var(--panel); padding:18px 22px;}
+.term dt{font-family:var(--f-mono); color:var(--brass); font-size:0.92rem; font-weight:500;}
+.term dd{margin:6px 0 0; color:var(--text-muted); font-size:0.88rem; line-height:1.5;}
+.term.hidden{display:none;}
+.terms-empty{
+  padding:32px; text-align:center; color:var(--text-faint); font-size:0.9rem;
+  grid-column:1/-1; display:none;
+}
+.terms-empty.show{display:block;}
+
+/* footer */
+footer{
+  max-width:var(--maxw); margin:0 auto; padding:56px var(--pad) 80px;
+  display:flex; flex-direction:column; gap:8px;
+}
+footer .logo{font-size:1.1rem;}
+footer p{color:var(--text-muted); font-size:0.94rem;}
+footer small{color:var(--text-faint); font-size:0.8rem; margin-top:6px;}
+
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<header class="topbar">
+  <a class="logo" href="#inicio"><span>TRADE</span>NOVA</a>
+  <div class="top-actions">
+    <div class="progress-mini"><i id="progressBar"></i></div>
+    <button id="menuBtn" class="icon-btn" aria-label="Menú">☰</button>
+  </div>
+</header>
+
+<aside id="sideNav">
+  <div class="nav-head"><strong>Contenido</strong><button id="closeBtn">×</button></div>
+  <a href="#inicio">⌂ <span>Inicio</span></a>
+  <a href="#fundamentos">01 <span>Fundamentos</span></a>
+  <a href="#mercados">02 <span>Mercados y activos</span></a>
+  <a href="#operacion">03 <span>Cómo operar</span></a>
+  <a href="#ordenes">04 <span>Tipos de órdenes</span></a>
+  <a href="#sesiones">05 <span>Sesiones de mercado</span></a>
+  <a href="#riesgo">06 <span>Gestión del riesgo</span></a>
+  <a href="#capital">07 <span>Gestión de capital</span></a>
+  <a href="#graficos">08 <span>Leer gráficos</span></a>
+  <a href="#tecnico">09 <span>Análisis técnico</span></a>
+  <a href="#tecnico-avanzado">10 <span>Análisis avanzado</span></a>
+  <a href="#fundamental">11 <span>Noticias & fundamental</span></a>
+  <a href="#psicologia">12 <span>Psicología</span></a>
+  <a href="#broker">13 <span>Elegir un bróker</span></a>
+  <a href="#estrategia">14 <span>Crear una estrategia</span></a>
+  <a href="#diario">15 <span>Diario de trading</span></a>
+  <a href="#backtesting">16 <span>Backtesting</span></a>
+  <a href="#errores">17 <span>Errores</span></a>
+  <a href="#quiz">18 <span>Ponte a prueba</span></a>
+  <a href="#ruta">19 <span>Ruta de aprendizaje</span></a>
+  <a href="#glosario">20 <span>Glosario</span></a>
+</aside>
+<div id="overlay"></div>
+
+<main>
+<section id="inicio" class="hero">
+  <div class="hero-copy">
+    <div class="pill"><span class="dot"></span> GUÍA PARA PRINCIPIANTES</div>
+    <h1>Entiende el<br><em>trading.</em></h1>
+    <p>Aprende desde cero cómo funcionan los mercados, cómo analizar el precio y, sobre todo, cómo proteger tu capital.</p>
+    <div class="hero-buttons"><a class="primary" href="#fundamentos">Empezar ahora <b>→</b></a><a class="ghost" href="#ruta">Ver ruta</a></div>
+  </div>
+  <div class="market-card">
+    <div class="market-top"><span>EUR / USD</span><small>SIMULACIÓN</small></div>
+    <div class="price">1.1738 <span>+0.42%</span></div>
+    <div class="chart">
+      <svg viewBox="0 0 400 150" preserveAspectRatio="none">
+        <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-opacity=".25"/><stop offset="1" stop-opacity="0"/></linearGradient></defs>
+        <path class="area" d="M0 120 L30 105 L58 112 L85 85 L110 96 L137 70 L162 82 L190 58 L220 72 L245 45 L275 55 L300 30 L330 48 L355 25 L400 10 L400 150 L0 150Z"/>
+        <path class="line" d="M0 120 L30 105 L58 112 L85 85 L110 96 L137 70 L162 82 L190 58 L220 72 L245 45 L275 55 L300 30 L330 48 L355 25 L400 10"/>
+      </svg>
+      <div class="chart-label">Precio</div>
+    </div>
+    <div class="market-bottom"><span>OPEN <b>1.1689</b></span><span>HIGH <b>1.1762</b></span><span>LOW <b>1.1667</b></span></div>
+  </div>
+  <div class="disclaimer">⚠️ <span>El trading implica riesgo. Esta web es educativa y no garantiza beneficios.</span></div>
+</section>
+
+<section id="fundamentos">
+  <div class="section-head"><div><small>01 — FUNDAMENTOS</small><h2>Primero lo primero.</h2></div><span class="num">01</span></div>
+  <p class="intro">Antes de mirar indicadores, necesitas entender qué estás haciendo cuando pulsas <b>comprar</b> o <b>vender</b>.</p>
+  <div class="cards four">
+    <article class="feature"><div class="ico">↗</div><h3>¿Qué es el trading?</h3><p>Comprar o vender un activo intentando beneficiarte de sus movimientos de precio. No consiste en acertar siempre.</p></article>
+    <article class="feature"><div class="ico">◉</div><h3>¿Qué se puede operar?</h3><p>Forex, acciones, índices, materias primas, criptomonedas y otros instrumentos.</p></article>
+    <article class="feature"><div class="ico">⌁</div><h3>Liquidez</h3><p>Facilidad para entrar y salir del mercado sin afectar demasiado al precio.</p></article>
+    <article class="feature"><div class="ico">ϟ</div><h3>Volatilidad</h3><p>Cuánto puede variar el precio. Más movimiento también significa más riesgo.</p></article>
+  </div>
+  <div class="compare">
+    <div><span class="tag buy">LONG</span><strong>Esperas una subida</strong><p>Compras primero y buscas vender más arriba.</p></div>
+    <div class="vs">VS</div>
+    <div><span class="tag sell">SHORT</span><strong>Esperas una bajada</strong><p>Vendes primero y buscas recomprar más abajo.</p></div>
+  </div>
+</section>
+
+<section id="mercados">
+  <div class="section-head"><div><small>02 — MERCADOS</small><h2>No todos los activos se mueven igual.</h2></div><span class="num">02</span></div>
+  <p class="intro">Antes de elegir qué operar, conviene entender cómo se comporta cada tipo de mercado: su horario, su volatilidad y qué lo mueve.</p>
+  <div class="cards four">
+    <article class="feature"><div class="ico">$</div><h3>Forex</h3><p>Pares de divisas. Mercado 24h entre semana, muy líquido, sensible a bancos centrales.</p></article>
+    <article class="feature"><div class="ico">▦</div><h3>Acciones</h3><p>Participaciones de empresas cotizadas. Ligadas a resultados, sector y noticias corporativas.</p></article>
+    <article class="feature"><div class="ico">◆</div><h3>Índices</h3><p>Cestas de empresas (US30, S&P500...). Reflejan el sentimiento general del mercado.</p></article>
+    <article class="feature"><div class="ico">◎</div><h3>Cripto</h3><p>Activos digitales. Alta volatilidad, mercado 24/7, sin horario de sesiones tradicional.</p></article>
+  </div>
+  <p class="intro" style="margin-top:24px;">También existen materias primas (oro, petróleo) y bonos, cada uno con su propia lógica. Empezar con uno o dos mercados que entiendas bien suele ser mejor que dispersarse en todos a la vez.</p>
+</section>
+
+<section id="operacion">
+  <div class="section-head"><div><small>03 — UNA OPERACIÓN</small><h2>De idea a operación.</h2></div><span class="num">03</span></div>
+  <div class="trade-flow">
+    <div><b>01</b><span>Entrada</span><p>Precio donde abres.</p></div><i>→</i>
+    <div><b>02</b><span>Stop Loss</span><p>Donde aceptas que la idea falló.</p></div><i>→</i>
+    <div><b>03</b><span>Take Profit</span><p>Objetivo de salida.</p></div>
+  </div>
+  <div class="example-card"><div class="example-icon">€</div><div><small>EJEMPLO SIMPLE</small><h3>Cuenta de 10.000 €</h3><p>Si decides arriesgar el 1%, tu pérdida máxima planificada sería <strong>100 €</strong>. El tamaño de la posición depende del activo, la distancia del stop y el valor por punto/pip.</p></div></div>
+</section>
+
+<section id="ordenes">
+  <div class="section-head"><div><small>04 — TIPOS DE ÓRDENES</small><h2>No todas las órdenes son iguales.</h2></div><span class="num">04</span></div>
+  <p class="intro">Cómo entras al mercado también forma parte del plan. Elegir bien el tipo de orden evita entradas a destiempo o a un precio que no querías.</p>
+  <div class="cards four">
+    <article class="feature"><div class="ico">▸</div><h3>Orden a mercado</h3><p>Se ejecuta al instante, al mejor precio disponible en ese momento.</p></article>
+    <article class="feature"><div class="ico">▤</div><h3>Orden limitada</h3><p>Solo se ejecuta al precio que fijes, o a uno mejor. No garantiza ejecución.</p></article>
+    <article class="feature"><div class="ico">◫</div><h3>Orden stop</h3><p>Se activa cuando el precio alcanza un nivel: útil para rupturas o para proteger una posición abierta.</p></article>
+    <article class="feature"><div class="ico">⇄</div><h3>OCO</h3><p>Dos órdenes vinculadas. Si una se ejecuta, la otra se cancela automáticamente.</p></article>
+  </div>
+</section>
+
+<section id="sesiones">
+  <div class="section-head"><div><small>05 — SESIONES</small><h2>El mercado nunca duerme del todo.</h2></div><span class="num">05</span></div>
+  <p class="intro">El forex se mueve en tres grandes sesiones que se solapan. La actividad y la volatilidad cambian según qué mercados están abiertos en cada momento.</p>
+  <div class="sessions">
+    <div class="sessions-row"><span class="label">Tokio / Asia</span><div class="sessions-track"><i class="sessions-bar s-asia" style="left:0%;width:37.5%"></i></div></div>
+    <div class="sessions-row"><span class="label">Londres</span><div class="sessions-track"><i class="sessions-bar s-london" style="left:33.3%;width:37.5%"></i></div></div>
+    <div class="sessions-row"><span class="label">Nueva York</span><div class="sessions-track"><i class="sessions-bar s-ny" style="left:54.2%;width:37.5%"></i></div></div>
+    <div class="sessions-axis"><span>00h</span><span>04h</span><span>08h</span><span>12h</span><span>16h</span><span>20h</span><span>24h</span></div>
+  </div>
+  <p class="intro" style="margin-top:22px;">Horario UTC aproximado (varía con el cambio de hora). El mayor solapamiento —y normalmente la mayor liquidez— ocurre entre las 13:00 y las 17:00 UTC, cuando coinciden Londres y Nueva York.</p>
+</section>
+
+<section id="riesgo">
+  <div class="section-head"><div><small>06 — GESTIÓN DEL RIESGO</small><h2>Sobrevive primero.</h2></div><span class="num">06</span></div>
+  <p class="intro">La gestión del riesgo determina cuánto puedes perder cuando el mercado no hace lo que esperabas.</p>
+  <div class="risk-grid">
+    <div class="risk-main"><small>FÓRMULA BÁSICA</small><div class="formula">Capital × riesgo = pérdida máxima</div><div class="formula-result">10.000 € × 1% = <strong>100 €</strong></div></div>
+    <div class="risk-list">
+      <div><b>Drawdown</b><span>Caída desde un máximo de la cuenta.</span></div>
+      <div><b>R:R</b><span>Compara riesgo con recompensa potencial.</span></div>
+      <div><b>Apalancamiento</b><span>Aumenta exposición y también puede aumentar pérdidas.</span></div>
+    </div>
+  </div>
+  <div class="calculator">
+    <div class="calc-head"><small>CALCULADORA</small><h3>Tamaño de posición</h3></div>
+    <div class="calc-grid">
+      <label>Capital (€)<input type="number" id="calcCapital" value="10000" min="0" step="100"></label>
+      <label>Riesgo (%)<input type="number" id="calcRisk" value="1" min="0" step="0.1"></label>
+      <label>Stop (pips)<input type="number" id="calcStop" value="20" min="0" step="1"></label>
+      <label>Valor/pip por lote (€)<input type="number" id="calcPipValue" value="10" min="0" step="0.1"></label>
+    </div>
+    <div class="calc-result">
+      <div><span>Pérdida máxima</span><b id="calcMaxLoss">100,00 €</b></div>
+      <div><span>Tamaño sugerido</span><b id="calcLots">0,50 lotes</b></div>
+    </div>
+    <p class="calc-note">Cálculo educativo simplificado (pérdida máxima ÷ (stop × valor por pip)). El valor real por pip depende del activo, el tamaño del contrato y tu bróker: verifícalo siempre antes de operar.</p>
+  </div>
+</section>
+
+<section id="capital">
+  <div class="section-head"><div><small>07 — CAPITAL</small><h2>Gestionar la cuenta, no solo la operación.</h2></div><span class="num">07</span></div>
+  <p class="intro">El riesgo por operación es solo una parte. También importa cómo se comporta tu capital en conjunto, entre varias operaciones y activos correlacionados.</p>
+  <div class="tool-grid">
+    <div><b>Correlación</b><span>Operar varios pares que se mueven igual multiplica el riesgo real sin que lo notes.</span></div>
+    <div><b>Riesgo total abierto</b><span>Suma el riesgo de todas las operaciones abiertas, no solo el de la última.</span></div>
+    <div><b>Diversificación</b><span>Repartir entre activos distintos reduce el impacto de un solo movimiento adverso.</span></div>
+    <div><b>Drawdown máximo</b><span>Define de antemano cuánto estás dispuesto a perder antes de parar y revisar.</span></div>
+    <div><b>Tamaño según volatilidad</b><span>En activos más volátiles, reducir el tamaño de posición compensa el mayor rango de movimiento.</span></div>
+    <div><b>Escalado de riesgo</b><span>Algunos traders reducen el riesgo tras pérdidas seguidas y lo aumentan tras rachas ganadoras estables.</span></div>
+  </div>
+</section>
+
+<section id="graficos">
+  <div class="section-head"><div><small>08 — GRÁFICOS</small><h2>Aprende a leer el precio.</h2></div><span class="num">08</span></div>
+  <div class="candle-demo">
+    <div class="candles"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i><i class="c5"></i></div>
+    <div class="legend"><span><i></i> Mecha</span><span><i></i> Cuerpo</span><span><i></i> Cierre</span></div>
+  </div>
+  <div class="cards three">
+    <article class="feature"><span class="mini-label">PRECIO</span><h3>Tendencia</h3><p>Alcista: máximos y mínimos ascendentes. Bajista: descendentes. Lateral: rango.</p></article>
+    <article class="feature"><span class="mini-label">ZONAS</span><h3>Soporte & resistencia</h3><p>Áreas donde el precio ha reaccionado anteriormente. No son líneas mágicas.</p></article>
+    <article class="feature"><span class="mini-label">VELAS</span><h3>Doji y mechas</h3><p>Ayudan a leer el comportamiento del precio, pero ninguna vela garantiza una entrada.</p></article>
+  </div>
+</section>
+
+<section id="tecnico">
+  <div class="section-head"><div><small>09 — ANÁLISIS TÉCNICO</small><h2>Herramientas, no señales mágicas.</h2></div><span class="num">09</span></div>
+  <div class="tool-grid">
+    <div><b>EMA</b><span>Media móvil para estudiar contexto y tendencia.</span></div>
+    <div><b>RSI</b><span>Oscilador de momentum. No es una señal automática.</span></div>
+    <div><b>Volumen</b><span>Información sobre actividad, según el mercado y datos disponibles.</span></div>
+    <div><b>Fibonacci</b><span>Niveles usados para estudiar posibles retrocesos.</span></div>
+    <div><b>FVG</b><span>Concepto de desequilibrio usado en SMC.</span></div>
+    <div><b>Order Block</b><span>Zona conceptual utilizada por traders de SMC.</span></div>
+  </div>
+</section>
+
+<section id="tecnico-avanzado">
+  <div class="section-head"><div><small>10 — ANÁLISIS AVANZADO</small><h2>Cuando las herramientas básicas se combinan.</h2></div><span class="num">10</span></div>
+  <p class="intro">Con los fundamentos claros, el siguiente paso es cruzar información: distintos plazos de tiempo, patrones de precio y confluencias entre herramientas.</p>
+  <div class="cards three">
+    <article class="feature"><span class="mini-label">CONTEXTO</span><h3>Multi-timeframe</h3><p>Analiza un plazo mayor para el contexto (ej. 4H) y uno menor para afinar la entrada (ej. 15m).</p></article>
+    <article class="feature"><span class="mini-label">PATRONES</span><h3>Figuras de precio</h3><p>Triángulos, banderas, hombro-cabeza-hombro: describen comportamientos recurrentes, no garantías.</p></article>
+    <article class="feature"><span class="mini-label">CRITERIO</span><h3>Confluencia</h3><p>Una entrada gana solidez cuando varias herramientas (zona, tendencia, momentum) apuntan en la misma dirección.</p></article>
+  </div>
+  <div class="compare" style="margin-top:28px;">
+    <div><strong>Price action</strong><p>Lee el movimiento del precio y las velas directamente, sin depender de indicadores.</p></div>
+    <div class="vs">VS</div>
+    <div><strong>Indicadores</strong><p>Traducen el precio en datos (medias, osciladores) para apoyar la lectura, no para sustituirla.</p></div>
+  </div>
+</section>
+
+<section id="fundamental">
+  <div class="section-head"><div><small>11 — FUNDAMENTAL</small><h2>El mercado también escucha noticias.</h2></div><span class="num">11</span></div>
+  <div class="news-board">
+    <div class="news-title"><span>CALENDARIO ECONÓMICO</span><small>IMPACTO</small></div>
+    <div class="news-row"><b>08:30</b><span>Inflación / CPI</span><em>ALTO</em></div>
+    <div class="news-row"><b>14:00</b><span>Decisión de tipos</span><em>ALTO</em></div>
+    <div class="news-row"><b>14:30</b><span>Datos de empleo</span><em>MEDIO</em></div>
+  </div>
+  <p class="intro">Inflación, tipos de interés, empleo y decisiones de bancos centrales pueden provocar movimientos fuertes. Comprueba siempre el calendario antes de operar.</p>
+</section>
+
+<section id="psicologia">
+  <div class="section-head"><div><small>12 — PSICOLOGÍA</small><h2>Tu peor enemigo puede ser tú.</h2></div><span class="num">12</span></div>
+  <div class="psych-grid">
+    <div><span>01</span><b>FOMO</b><p>Entrar tarde por miedo a perderte el movimiento.</p></div>
+    <div><span>02</span><b>Revenge trading</b><p>Aumentar el riesgo para recuperar una pérdida rápidamente.</p></div>
+    <div><span>03</span><b>Sobreoperar</b><p>Buscar operaciones cuando no existe una ventaja clara.</p></div>
+    <div><span>04</span><b>Disciplina</b><p>Ejecutar el plan incluso cuando una operación termina en pérdida.</p></div>
+  </div>
+</section>
+
+<section id="broker">
+  <div class="section-head"><div><small>13 — BRÓKER</small><h2>El intermediario también importa.</h2></div><span class="num">13</span></div>
+  <p class="intro">Antes de depositar dinero real, comprueba estos puntos. Un buen bróker no garantiza ganar, pero uno malo puede costarte dinero sin que hayas operado mal.</p>
+  <div class="checklist">
+    <div><i>✓</i><div><b>Regulación</b><p>Que esté supervisado por un organismo reconocido (CNMV, FCA, ASIC, CySEC...).</p></div></div>
+    <div><i>✓</i><div><b>Spreads y comisiones</b><p>Compara el coste real de operar, no solo el spread anunciado.</p></div></div>
+    <div><i>✓</i><div><b>Ejecución</b><p>Revisa el slippage y la velocidad de ejecución, sobre todo durante noticias.</p></div></div>
+    <div><i>✓</i><div><b>Plataforma</b><p>MT4, MT5, TradingView u otra: que se ajuste a cómo analizas y operas.</p></div></div>
+    <div><i>✓</i><div><b>Depósitos y retiros</b><p>Métodos disponibles, tiempos de retiro y posibles comisiones ocultas.</p></div></div>
+    <div><i>✓</i><div><b>Atención al cliente</b><p>Idioma, horarios y canales de soporte cuando algo falla.</p></div></div>
+  </div>
+</section>
+
+<section id="estrategia">
+  <div class="section-head"><div><small>14 — TU SISTEMA</small><h2>Una estrategia debe poder explicarse.</h2></div><span class="num">14</span></div>
+  <div class="rules">
+    <div><span>01</span><b>Mercado</b><p>¿Qué activo operas?</p></div>
+    <div><span>02</span><b>Horario</b><p>¿Cuándo buscas entradas?</p></div>
+    <div><span>03</span><b>Contexto</b><p>¿Tendencia o rango?</p></div>
+    <div><span>04</span><b>Entrada</b><p>Condiciones objetivas.</p></div>
+    <div><span>05</span><b>Stop</b><p>¿Dónde queda invalidada?</p></div>
+    <div><span>06</span><b>Salida</b><p>TP y gestión.</p></div>
+    <div><span>07</span><b>Riesgo</b><p>Cuánto arriesgas.</p></div>
+    <div><span>08</span><b>Registro</b><p>Medir y mejorar.</p></div>
+  </div>
+</section>
+
+<section id="diario">
+  <div class="section-head"><div><small>15 — DIARIO</small><h2>Lo que no registras, no mejora.</h2></div><span class="num">15</span></div>
+  <p class="intro">Un diario de trading convierte operaciones sueltas en datos. Sin él es difícil saber si tu estrategia funciona o si solo tuviste suerte unas cuantas veces.</p>
+  <div class="journal-table">
+    <div class="journal-row journal-head"><span>Fecha</span><span>Activo</span><span>Dirección</span><span>R:R</span><span>Resultado</span><span>Nota</span></div>
+    <div class="journal-row"><span data-label="Fecha">04 sep</span><span data-label="Activo">EUR/USD</span><span data-label="Dirección" class="tag buy">LONG</span><span data-label="R:R">1:2</span><span data-label="Resultado" class="pos">+2R</span><span data-label="Nota">Entrada según plan</span></div>
+    <div class="journal-row"><span data-label="Fecha">05 sep</span><span data-label="Activo">XAU/USD</span><span data-label="Dirección" class="tag sell">SHORT</span><span data-label="R:R">1:1.5</span><span data-label="Resultado" class="neg">−1R</span><span data-label="Nota">Entré antes de tiempo</span></div>
+    <div class="journal-row"><span data-label="Fecha">05 sep</span><span data-label="Activo">US30</span><span data-label="Dirección" class="tag buy">LONG</span><span data-label="R:R">1:3</span><span data-label="Resultado" class="pos">+3R</span><span data-label="Nota">Buen contexto de tendencia</span></div>
+  </div>
+  <p class="intro" style="margin-top:24px;">Registra cada operación con su motivo de entrada, el resultado en múltiplos de R y una nota honesta. Revisa el diario cada semana, no después de cada operación.</p>
+</section>
+
+<section id="backtesting">
+  <div class="section-head"><div><small>16 — BACKTESTING</small><h2>Prueba antes de creer.</h2></div><span class="num">16</span></div>
+  <div class="process"><span>REGLAS</span><i>→</i><span>HISTÓRICO</span><i>→</i><span>ESTADÍSTICAS</span><i>→</i><span>DEMO</span></div>
+  <p class="intro">Una estrategia debe evaluarse con suficientes operaciones. Mira tasa de acierto, beneficio medio, pérdida media, expectativa y drawdown. Cuidado con el sobreajuste.</p>
+</section>
+
+<section id="errores">
+  <div class="section-head"><div><small>17 — ERRORES</small><h2>Lo que debes evitar.</h2></div><span class="num">17</span></div>
+  <div class="mistakes">
+    <div>✕ <span>Arriesgar demasiado en una operación.</span></div>
+    <div>✕ <span>Intentar recuperar una pérdida inmediatamente.</span></div>
+    <div>✕ <span>Cambiar de estrategia tras unas pocas pérdidas.</span></div>
+    <div>✕ <span>Usar apalancamiento sin entenderlo.</span></div>
+    <div>✕ <span>Operar noticias sin conocer el riesgo.</span></div>
+    <div>✕ <span>Creer en rentabilidades garantizadas.</span></div>
+  </div>
+</section>
+
+<section id="quiz">
+  <div class="section-head"><div><small>18 — PONTE A PRUEBA</small><h2>Comprueba lo que has aprendido.</h2></div><span class="num">18</span></div>
+  <div class="quiz-card" id="quizCard">
+    <div class="quiz-progress"><span id="quizStep">Pregunta 1 de 6</span><div class="quiz-bar"><i id="quizBarFill"></i></div></div>
+    <h3 id="quizQuestion">Cargando…</h3>
+    <div class="quiz-options" id="quizOptions"></div>
+    <p class="quiz-feedback" id="quizFeedback"></p>
+    <div class="quiz-actions"><button id="quizNext" class="ghost-btn" disabled>Siguiente</button></div>
+  </div>
+</section>
+
+<section id="ruta">
+  <div class="section-head"><div><small>19 — ROADMAP</small><h2>Tu camino desde cero.</h2></div><span class="num">19</span></div>
+  <div class="roadmap">
+    <div class="active"><strong>01</strong><h3>Fundamentos</h3><p>Mercados, órdenes y conceptos.</p></div>
+    <div><strong>02</strong><h3>Lectura del precio</h3><p>Velas, estructura y zonas.</p></div>
+    <div><strong>03</strong><h3>Riesgo & psicología</h3><p>Proteger capital y controlar emociones.</p></div>
+    <div><strong>04</strong><h3>Sistema</h3><p>Crear reglas claras y medibles.</p></div>
+    <div><strong>05</strong><h3>Backtesting</h3><p>Comprobar si existe una ventaja.</p></div>
+    <div><strong>06</strong><h3>Demo</h3><p>Practicar ejecución sin dinero real.</p></div>
+  </div>
+</section>
+
+<section id="glosario">
+  <div class="section-head"><div><small>20 — GLOSARIO</small><h2>Habla el idioma del mercado.</h2></div><span class="num">20</span></div>
+  <input id="search" class="search" type="search" placeholder="⌕  Buscar término…">
+  <div id="terms" class="terms"></div>
+</section>
+
+<section id="angel-peruano" style="text-align:center; padding-top:120px; padding-bottom:120px;">
+  <h1 style="font-family:var(--f-display); font-size:clamp(3rem, 12vw, 8rem); line-height:1; color:var(--brass); letter-spacing:-0.02em;">Angel peruano</h1>
+</section>
+
+<footer><div class="logo"><span>TRADE</span>NOVA</div><p>Guía educativa para aprender trading desde cero.</p><small>Contenido educativo. No constituye asesoramiento financiero ni una promesa de resultados.</small></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- mobile / side nav ---------- */
+  const sideNav   = document.getElementById("sideNav");
+  const overlay   = document.getElementById("overlay");
+  const menuBtn   = document.getElementById("menuBtn");
+  const closeBtn  = document.getElementById("closeBtn");
+
+  function openNav(){
+    sideNav.classList.add("open");
+    overlay.classList.add("open");
+    menuBtn.setAttribute("aria-expanded", "true");
+  }
+  function closeNav(){
+    sideNav.classList.remove("open");
+    overlay.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  menuBtn?.addEventListener("click", () => {
+    sideNav.classList.contains("open") ? closeNav() : openNav();
+  });
+  closeBtn?.addEventListener("click", closeNav);
+  overlay?.addEventListener("click", closeNav);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeNav();
+  });
+  sideNav?.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeNav));
+
+  /* ---------- scroll progress + active section ---------- */
+  const progressBar = document.getElementById("progressBar");
+  const sections = Array.from(document.querySelectorAll("main section[id]"));
+  const navLinks = Array.from(document.querySelectorAll("#sideNav a[href^='#']"));
+
+  function onScroll(){
+    const doc = document.documentElement;
+    const scrollTop = doc.scrollTop || document.body.scrollTop;
+    const height = doc.scrollHeight - doc.clientHeight;
+    const pct = height > 0 ? (scrollTop / height) * 100 : 0;
+    if (progressBar) progressBar.style.width = pct.toFixed(1) + "%";
+
+    let currentId = sections[0]?.id;
+    const probe = scrollTop + 120;
+    for (const sec of sections) {
+      if (sec.offsetTop <= probe) currentId = sec.id;
+    }
+    navLinks.forEach((a) => {
+      a.classList.toggle("active", a.getAttribute("href") === "#" + currentId);
+    });
+  }
+  document.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("load", onScroll);
+
+  /* ---------- glosario ---------- */
+  const GLOSSARY = [
+    ["Pip", "La unidad mínima de variación de precio en la mayoría de pares de forex, normalmente el cuarto decimal."],
+    ["Spread", "La diferencia entre el precio de compra (ask) y el de venta (bid) de un activo."],
+    ["Lote", "Unidad estándar de tamaño de posición; su valor cambia según el activo y el bróker."],
+    ["Stop Loss", "Orden que cierra automáticamente una operación en pérdida a un nivel definido de antemano."],
+    ["Take Profit", "Orden que cierra automáticamente una operación al alcanzar el objetivo de beneficio."],
+    ["Apalancamiento", "Mecanismo que permite operar con una exposición mayor al capital depositado, aumentando ganancias y pérdidas."],
+    ["Margen", "Capital que el bróker retiene como garantía para mantener una posición apalancada abierta."],
+    ["Drawdown", "Caída porcentual desde el punto más alto de una cuenta hasta un mínimo posterior."],
+    ["Ratio riesgo/beneficio (R:R)", "Comparación entre lo que se arriesga en una operación y lo que se espera ganar si sale bien."],
+    ["Volatilidad", "Medida de cuánto varía el precio de un activo en un periodo determinado."],
+    ["Liquidez", "Facilidad para comprar o vender un activo sin provocar un movimiento brusco en su precio."],
+    ["Soporte", "Zona de precio donde la demanda ha detenido caídas anteriores."],
+    ["Resistencia", "Zona de precio donde la oferta ha detenido subidas anteriores."],
+    ["Tendencia", "Dirección general del precio a lo largo del tiempo: alcista, bajista o lateral."],
+    ["Vela japonesa", "Representación gráfica que muestra apertura, cierre, máximo y mínimo de un periodo."],
+    ["Mecha (sombra)", "Parte fina de una vela que muestra el rango de precio alcanzado fuera del cuerpo."],
+    ["Doji", "Vela con apertura y cierre muy próximos, asociada a indecisión en el mercado."],
+    ["Media móvil (EMA/SMA)", "Indicador que suaviza el precio para estudiar la tendencia general."],
+    ["RSI", "Oscilador de momentum que mide la velocidad y magnitud de los movimientos de precio."],
+    ["Fibonacci", "Conjunto de niveles horizontales usados para estimar posibles zonas de retroceso o extensión."],
+    ["Order Block", "Zona donde se concentró actividad institucional relevante antes de un movimiento fuerte, según el análisis SMC."],
+    ["FVG (Fair Value Gap)", "Desequilibrio entre compradores y vendedores visible como un hueco en el gráfico."],
+    ["Backtesting", "Proceso de probar una estrategia sobre datos históricos antes de operarla en real."],
+    ["Cuenta demo", "Cuenta de práctica con dinero simulado para probar estrategias sin riesgo real."],
+    ["FOMO", "Miedo a perderse un movimiento, que lleva a entrar en el mercado sin un plan claro."],
+    ["Revenge trading", "Aumentar el riesgo de forma impulsiva para intentar recuperar una pérdida reciente."],
+    ["Expectativa", "Ganancia o pérdida promedio esperada por operación, dado el historial de una estrategia."],
+    ["Slippage", "Diferencia entre el precio esperado de una orden y el precio al que realmente se ejecuta."],
+    ["Orden a mercado", "Orden que se ejecuta de inmediato al mejor precio disponible en ese momento."],
+    ["Orden limitada", "Orden que solo se ejecuta al precio indicado o en condiciones mejores; no garantiza ejecución."],
+    ["Orden stop", "Orden que se activa automáticamente cuando el precio alcanza un nivel determinado."],
+    ["OCO (One Cancels the Other)", "Dos órdenes vinculadas: al ejecutarse una, la otra se cancela automáticamente."],
+    ["Sesión de mercado", "Franja horaria en la que un centro financiero, como Tokio, Londres o Nueva York, está activo."],
+    ["Solapamiento de sesiones", "Periodo en el que coinciden dos sesiones abiertas, asociado a mayor liquidez y movimiento."],
+    ["Múltiplo de R", "Forma de medir el resultado de una operación en unidades del riesgo asumido, no en dinero."],
+    ["Regulación", "Supervisión de un bróker por parte de un organismo financiero oficial."],
+    ["Diario de trading", "Registro sistemático de operaciones usado para evaluar y mejorar una estrategia."],
+  ];
+
+  const termsContainer = document.getElementById("terms");
+  const searchInput = document.getElementById("search");
+
+  function renderTerms(filter = "") {
+    if (!termsContainer) return;
+    const q = filter.trim().toLowerCase();
+    termsContainer.innerHTML = "";
+
+    const matches = GLOSSARY.filter(
+      ([term, def]) => term.toLowerCase().includes(q) || def.toLowerCase().includes(q)
+    );
+
+    matches.forEach(([term, def]) => {
+      const el = document.createElement("dl");
+      el.className = "term";
+      const dt = document.createElement("dt");
+      dt.textContent = term;
+      const dd = document.createElement("dd");
+      dd.textContent = def;
+      el.append(dt, dd);
+      termsContainer.appendChild(el);
+    });
+
+    let empty = termsContainer.parentElement.querySelector(".terms-empty");
+    if (!empty) {
+      empty = document.createElement("div");
+      empty.className = "terms-empty";
+      empty.textContent = "Ningún término coincide con tu búsqueda.";
+      termsContainer.after(empty);
+    }
+    empty.classList.toggle("show", matches.length === 0);
+  }
+
+  renderTerms();
+  searchInput?.addEventListener("input", (e) => renderTerms(e.target.value));
+
+  /* ---------- calculadora de tamaño de posición ---------- */
+  const calcCapital  = document.getElementById("calcCapital");
+  const calcRisk     = document.getElementById("calcRisk");
+  const calcStop     = document.getElementById("calcStop");
+  const calcPipValue = document.getElementById("calcPipValue");
+  const calcMaxLoss  = document.getElementById("calcMaxLoss");
+  const calcLots     = document.getElementById("calcLots");
+
+  function fmtEUR(n){
+    return n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  }
+
+  function updateCalculator(){
+    if (!calcCapital) return;
+    const capital  = Math.max(0, parseFloat(calcCapital.value) || 0);
+    const riskPct  = Math.max(0, parseFloat(calcRisk.value) || 0);
+    const stopPips = Math.max(0, parseFloat(calcStop.value) || 0);
+    const pipValue = Math.max(0, parseFloat(calcPipValue.value) || 0);
+
+    const maxLoss = capital * (riskPct / 100);
+    const denom = stopPips * pipValue;
+    const lots = denom > 0 ? maxLoss / denom : 0;
+
+    calcMaxLoss.textContent = fmtEUR(maxLoss);
+    calcLots.textContent = lots.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " lotes";
+  }
+  [calcCapital, calcRisk, calcStop, calcPipValue].forEach((el) =>
+    el?.addEventListener("input", updateCalculator)
+  );
+  updateCalculator();
+
+  /* ---------- quiz ---------- */
+  const QUIZ = [
+    {
+      q: "Si tu cuenta es de 10.000 € y arriesgas el 1 % por operación, ¿cuál es tu pérdida máxima planificada?",
+      options: ["10 €", "100 €", "1.000 €", "Depende del bróker"],
+      correct: 1,
+      explain: "10.000 € × 1 % = 100 €. Ese es el límite que deberías fijar con el stop loss.",
+    },
+    {
+      q: "¿Qué orden se ejecuta solo al precio que fijas, o a uno mejor?",
+      options: ["Orden a mercado", "Orden limitada", "Orden OCO", "Ninguna de las anteriores"],
+      correct: 1,
+      explain: "La orden limitada solo se ejecuta al precio indicado (o en mejores condiciones); no garantiza que llegue a ejecutarse.",
+    },
+    {
+      q: "Un ratio riesgo/beneficio de 1:3 significa que...",
+      options: [
+        "Arriesgas 3 veces más de lo que puedes ganar",
+        "Puedes ganar 3 veces lo que arriesgas si sale bien",
+        "Ganas un 3 % en cada operación",
+        "Tu tasa de acierto debe ser del 30 %",
+      ],
+      correct: 1,
+      explain: "1:3 significa que, si la operación sale como esperabas, la ganancia potencial es tres veces el riesgo asumido.",
+    },
+    {
+      q: "¿Cuál de estas situaciones describe mejor el revenge trading?",
+      options: [
+        "Seguir el plan tras una pérdida",
+        "Aumentar el riesgo para recuperar una pérdida rápido",
+        "Cerrar una operación en breakeven",
+        "Reducir el tamaño tras una racha ganadora",
+      ],
+      correct: 1,
+      explain: "El revenge trading es aumentar el riesgo de forma impulsiva para \"recuperar\" lo perdido, normalmente sin un plan claro.",
+    },
+    {
+      q: "¿Cuándo suele haber más liquidez en el mercado de forex?",
+      options: [
+        "Solo en la sesión asiática",
+        "Cuando ninguna sesión está abierta",
+        "En el solapamiento entre Londres y Nueva York",
+        "Los fines de semana",
+      ],
+      correct: 2,
+      explain: "El solapamiento entre Londres y Nueva York concentra el mayor volumen y suele traer más movimiento de precio.",
+    },
+    {
+      q: "¿Para qué sirve principalmente el backtesting?",
+      options: [
+        "Para garantizar beneficios futuros",
+        "Para evaluar una estrategia sobre datos históricos",
+        "Para eliminar el riesgo por completo",
+        "Para sustituir la gestión del riesgo",
+      ],
+      correct: 1,
+      explain: "El backtesting evalúa cómo se habría comportado una estrategia en el pasado; no garantiza resultados futuros ni sustituye la gestión del riesgo.",
+    },
+  ];
+
+  const quizCard     = document.getElementById("quizCard");
+  const quizStep     = document.getElementById("quizStep");
+  const quizBarFill  = document.getElementById("quizBarFill");
+  const quizQuestion = document.getElementById("quizQuestion");
+  const quizOptions  = document.getElementById("quizOptions");
+  const quizFeedback = document.getElementById("quizFeedback");
+  const quizNext     = document.getElementById("quizNext");
+
+  let quizIndex = 0;
+  let quizScore = 0;
+  let quizAnswered = false;
+
+  function renderQuizQuestion(){
+    if (!quizCard) return;
+    quizAnswered = false;
+    const item = QUIZ[quizIndex];
+
+    quizStep.textContent = `Pregunta ${quizIndex + 1} de ${QUIZ.length}`;
+    quizBarFill.style.width = ((quizIndex) / QUIZ.length * 100) + "%";
+    quizQuestion.textContent = item.q;
+    quizFeedback.textContent = "";
+    quizOptions.innerHTML = "";
+    quizNext.disabled = true;
+    quizNext.textContent = quizIndex === QUIZ.length - 1 ? "Ver resultado" : "Siguiente";
+
+    item.options.forEach((opt, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "quiz-option";
+      btn.textContent = opt;
+      btn.addEventListener("click", () => selectAnswer(i, btn));
+      quizOptions.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(i, btn){
+    if (quizAnswered) return;
+    quizAnswered = true;
+    const item = QUIZ[quizIndex];
+    const allBtns = Array.from(quizOptions.children);
+    allBtns.forEach((b) => (b.disabled = true));
+
+    if (i === item.correct) {
+      quizScore++;
+      btn.classList.add("correct");
+    } else {
+      btn.classList.add("incorrect");
+      allBtns[item.correct].classList.add("correct");
+    }
+    quizFeedback.textContent = item.explain;
+    quizNext.disabled = false;
+  }
+
+  function renderQuizResult(){
+    quizBarFill.style.width = "100%";
+    quizStep.textContent = "Resultado";
+    quizQuestion.textContent = "";
+    quizFeedback.textContent = "";
+    quizOptions.innerHTML = "";
+
+    const wrap = document.createElement("div");
+    wrap.className = "quiz-result";
+    const label = document.createElement("span");
+    label.style.fontFamily = "var(--f-mono)";
+    label.style.fontSize = "0.76rem";
+    label.style.color = "var(--text-faint)";
+    label.textContent = "TU PUNTUACIÓN";
+    const score = document.createElement("div");
+    score.className = "score";
+    score.textContent = `${quizScore} / ${QUIZ.length}`;
+    const msg = document.createElement("p");
+    msg.textContent =
+      quizScore === QUIZ.length
+        ? "Pleno. Dominas los conceptos básicos — ahora toca practicar en demo con constancia."
+        : quizScore >= QUIZ.length / 2
+        ? "Buen resultado. Repasa las preguntas que fallaste antes de seguir avanzando."
+        : "Conviene repasar las secciones anteriores antes de seguir; la base es lo que sostiene todo lo demás.";
+
+    wrap.append(label, score, msg);
+    quizOptions.appendChild(wrap);
+
+    quizNext.textContent = "Repetir quiz";
+    quizNext.disabled = false;
+    quizNext.onclick = () => {
+      quizIndex = 0;
+      quizScore = 0;
+      quizNext.onclick = handleNext;
+      renderQuizQuestion();
+    };
+  }
+
+  function handleNext(){
+    if (quizIndex < QUIZ.length - 1) {
+      quizIndex++;
+      renderQuizQuestion();
+    } else {
+      renderQuizResult();
+    }
+  }
+
+  if (quizCard) {
+    quizNext.onclick = handleNext;
+    renderQuizQuestion();
+  }
+})();
+
+</script>
+</body>
+</html>
