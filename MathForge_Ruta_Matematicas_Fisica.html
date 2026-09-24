@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathForge — Ruta Matemática para Física</title>
+<meta name="description" content="MathForge — Ruta progresiva de matemáticas para Física: fundamentos, álgebra, funciones, cálculo, álgebra lineal y práctica interactiva con ejercicios y exámenes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+/* aplica el tema guardado antes del primer pintado (evita destellos) */
+try{document.documentElement.dataset.theme=localStorage.getItem('mathforge-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}
+</script>
+<style>
+:root{
+  --bg:#070b16;--panel:#0d1324;--panel2:#111a30;--text:#eef3ff;--muted:#9ca9c7;
+  --accent:#7c8cff;--accent2:#43d9b2;--gold:#ffc857;--danger:#ff6b7a;
+  --border:rgba(255,255,255,.09);--shadow:0 20px 60px rgba(0,0,0,.35)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 10%,#172554 0,transparent 32%),radial-gradient(circle at 85% 15%,#16352f 0,transparent 28%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.65}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,black,transparent 85%);z-index:-1}
+header{padding:70px 20px 45px;max-width:1200px;margin:auto}
+.badge{display:inline-flex;padding:7px 12px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;color:#cdd6ff;font-size:.85rem}
+h1{font-size:clamp(2.5rem,6vw,5.5rem);line-height:.95;margin:18px 0;background:linear-gradient(110deg,#fff,#9ba8ff 45%,#55e5bd);-webkit-background-clip:text;color:transparent;letter-spacing:-.05em}
+.hero p{max-width:760px;color:var(--muted);font-size:1.08rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px}
+.stat{padding:18px;background:rgba(13,19,36,.75);border:1px solid var(--border);border-radius:18px;backdrop-filter:blur(12px)}
+.stat strong{display:block;font-size:1.5rem}.stat span{color:var(--muted);font-size:.85rem}
+main{max-width:1200px;margin:auto;padding:0 20px 80px}
+.toolbar{position:sticky;top:12px;z-index:10;display:flex;gap:10px;flex-wrap:wrap;padding:12px;background:rgba(7,11,22,.82);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);margin-bottom:25px}
+input,button{font:inherit}input{flex:1;min-width:220px;background:#0a1020;border:1px solid var(--border);color:white;padding:11px 14px;border-radius:12px;outline:none}
+button{border:1px solid var(--border);background:#121b31;color:#eaf0ff;padding:10px 14px;border-radius:12px;cursor:pointer;transition:.2s}
+button:hover{transform:translateY(-1px);border-color:#6674ff}
+.progress{height:8px;background:#1b2540;border-radius:999px;overflow:hidden;margin:10px 0}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s}
+.module{margin:18px 0;background:rgba(13,19,36,.86);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:var(--shadow);animation:rise .5s ease both}
+.module summary{list-style:none;cursor:pointer;padding:24px;display:flex;align-items:center;gap:16px}
+.module summary::-webkit-details-marker{display:none}
+.num{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#6674ff,#43d9b2);color:#061018;font-weight:900}
+.summaryText{flex:1}.summaryText h2{margin:0 0 4px;font-size:1.25rem}.summaryText p{margin:0;color:var(--muted);font-size:.9rem}
+.moduleBody{padding:0 24px 24px;border-top:1px solid var(--border)}
+.topic{margin-top:22px;padding:20px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:18px}
+.topic h3{margin:0 0 10px;color:#dfe5ff}
+.topic h4{color:#aebaff;margin:18px 0 6px}
+.topic p{color:#c3cbe0}.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#070c18;border:1px solid var(--border);padding:12px 14px;border-radius:12px;color:#a8f3dc;overflow:auto}
+.example{border-left:3px solid var(--gold);padding:12px 15px;background:rgba(255,200,87,.05);border-radius:0 12px 12px 0}
+.exercise{margin-top:16px;padding:15px;background:#090f1e;border-radius:14px;border:1px solid var(--border)}
+.exercise summary{cursor:pointer;color:#dce4ff;font-weight:650}
+.exercise .answer{padding-top:10px;color:#aeeedc}
+.check{display:flex;align-items:center;gap:9px;margin-top:15px;color:#bdc7df}.check input{min-width:auto;flex:none;accent-color:var(--accent)}
+footer{color:var(--muted);text-align:center;padding:30px}
+.hidden{display:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.module summary{padding:18px}.moduleBody{padding:0 16px 18px}h1{font-size:3rem}}
+
+.practice-hub{margin:55px 0 20px;padding:30px;background:linear-gradient(145deg,rgba(124,140,255,.10),rgba(67,217,178,.06));border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow)}
+.practice-head h2{font-size:2rem;margin:12px 0 4px}.practice-head p{color:var(--muted);max-width:760px}
+.practice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.practice-card{display:flex;flex-direction:column;gap:8px;padding:20px;background:rgba(7,11,22,.55);border:1px solid var(--border);border-radius:18px;transition:.25s}
+.practice-card:hover{transform:translateY(-4px);border-color:rgba(124,140,255,.5)}
+.practice-card span{font-size:1.7rem}.practice-card small{color:var(--muted);min-height:42px}.practice-card button{margin-top:auto}
+.exam-box{margin-top:18px;padding:20px;background:rgba(255,200,87,.05);border:1px solid rgba(255,200,87,.2);border-radius:18px}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);display:grid;place-items:center;padding:20px}
+.modal-card{position:relative;width:min(800px,100%);max-height:90vh;overflow:auto;background:#0c1325;border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:0 30px 100px #000}
+.modal-card .close{position:absolute;right:18px;top:18px}.modal-card h2{padding-right:35px}
+#practiceQuestion{font-size:1.1rem;padding:18px;background:#070c18;border-radius:15px;margin:18px 0}
+textarea{width:100%;min-height:150px;resize:vertical;background:#070c18;color:white;border:1px solid var(--border);border-radius:14px;padding:14px;font:inherit}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.solution{margin-top:15px;padding:16px;border-left:3px solid var(--accent2);background:rgba(67,217,178,.06);border-radius:0 12px 12px 0}
+@media(max-width:700px){.practice-grid{grid-template-columns:1fr}.modal-card{padding:20px}}
+
+/* =========================================================
+   MEJORAS VISUALES 2.0
+   Tipografía, símbolos flotantes, progreso por módulo,
+   animaciones de entrada y micro-interacciones.
+   ========================================================= */
+
+/* tipografía */
+body{font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif}
+h1,h2,h3,.num,.stat strong{font-family:"Space Grotesk","Inter",system-ui,sans-serif}
+.formula{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.01em}
+::selection{background:rgba(124,140,255,.35);color:#fff}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;border-radius:6px}
+
+/* hero: símbolos matemáticos flotantes */
+header{position:relative;overflow:hidden}
+.math-orbit{position:absolute;inset:0;pointer-events:none;z-index:0}
+.math-orbit span{
+  position:absolute;left:var(--x);top:var(--y);
+  font-family:"JetBrains Mono",monospace;font-size:var(--s);
+  color:rgba(140,156,255,.15);user-select:none;
+  animation:float 9s ease-in-out var(--d) infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-18px) rotate(5deg)}}
+.hero>*:not(.math-orbit){position:relative;z-index:1}
+
+/* badge del hero con punto pulsante */
+.hero>.badge{display:inline-flex;align-items:center;gap:9px}
+.hero>.badge:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(67,217,178,.5)}70%{box-shadow:0 0 0 7px rgba(67,217,178,0)}100%{box-shadow:0 0 0 0 rgba(67,217,178,0)}}
+
+/* stats con elevación */
+.stat{transition:transform .25s,border-color .25s}
+.stat:hover{transform:translateY(-3px);border-color:rgba(124,140,255,.4)}
+
+/* barra de progreso global del hero */
+.progress-wrap{margin-top:24px;max-width:520px}
+.progress-wrap .progress{margin:0 0 9px;background:rgba(255,255,255,.07)}
+.progress-label{font-size:.85rem;color:var(--muted)}
+.progress-label b{color:var(--accent2);font-family:"JetBrains Mono",monospace;font-weight:600}
+
+/* toolbar */
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.18)}
+.toolbar{transition:box-shadow .25s,border-color .25s}
+.toolbar.scrolled{border-color:rgba(124,140,255,.35);box-shadow:0 24px 70px rgba(0,0,0,.5)}
+
+/* módulos: chevron + hover + progreso por módulo */
+.module{animation:none}
+.module summary{transition:background .2s;border-radius:24px}
+.module[open]>summary{border-radius:24px 24px 0 0}
+.module summary:hover{background:rgba(255,255,255,.03)}
+.module summary:after{content:"⌄";font-size:1.35rem;line-height:1;color:var(--muted);flex:none;transition:transform .3s,color .2s}
+.module summary:hover:after{color:var(--accent2)}
+.module[open]>summary:after{transform:rotate(180deg)}
+.mod-prog{display:flex;align-items:center;gap:10px;flex:none}
+.mod-prog .track{width:64px;height:5px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.mod-prog .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .45s}
+.mod-prog b{font-family:"JetBrains Mono",monospace;font-size:.78rem;font-weight:500;color:var(--muted);min-width:36px;text-align:right}
+.mod-prog b.full{color:var(--accent2)}
+
+/* temas y ejercicios */
+.topic{transition:border-color .2s,background .2s}
+.topic:hover{border-color:rgba(124,140,255,.28);background:rgba(255,255,255,.035)}
+.exercise{transition:border-color .2s}
+.exercise:hover{border-color:rgba(124,140,255,.25)}
+.exercise summary{position:relative;padding-left:21px}
+.exercise summary:before{content:"▸";position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--accent);transition:transform .25s}
+.exercise[open]>summary:before{transform:translateY(-50%) rotate(90deg)}
+.exercise summary:hover{color:#fff}
+.check input{width:18px;height:18px;cursor:pointer}
+
+/* botones principales con degradado */
+.btn-primary{background:linear-gradient(135deg,#6674ff,#43d9b2);color:#061018;border:none;font-weight:700}
+.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08);border:none;box-shadow:0 8px 24px rgba(102,116,255,.35)}
+
+/* modal: animación de entrada */
+.modal:not(.hidden){animation:fadeIn .18s ease}
+.modal:not(.hidden) .modal-card{animation:popIn .3s cubic-bezier(.2,.9,.3,1.08)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.18);outline:none}
+.modal-card .close{transition:.2s}
+.modal-card .close:hover{border-color:var(--danger);color:var(--danger)}
+
+/* botón volver arriba */
+.to-top{
+  position:fixed;right:22px;bottom:22px;z-index:40;
+  width:46px;height:46px;border-radius:50%;
+  display:grid;place-items:center;font-size:1.15rem;
+  background:var(--panel2);color:var(--muted);
+  opacity:0;pointer-events:none;transform:translateY(10px);
+  transition:opacity .25s,transform .25s,color .15s,border-color .15s,box-shadow .25s;
+}
+.to-top.show{opacity:1;pointer-events:auto;transform:none}
+.to-top:hover{color:var(--accent2);border-color:rgba(67,217,178,.5);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+
+/* animación de entrada al hacer scroll */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease var(--d,0ms),transform .6s cubic-bezier(.22,.61,.36,1) var(--d,0ms)}
+.reveal.in{opacity:1;transform:none}
+
+/* scrollbar acorde al tema */
+::-webkit-scrollbar{width:11px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1d2742;border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#2a3860}
+
+/* movimiento reducido */
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1!important;transform:none!important}
+  .math-orbit span{animation:none}
+}
+@media(max-width:700px){.mod-prog .track{display:none}.module summary{gap:10px}}
+
+/* =========================================================
+   PULIDO FINAL (ronda 2)
+   Acordeones, coreografía del hero, brillo con cursor,
+   checkboxes personalizados y recompensas visuales.
+   ========================================================= */
+
+/* barra de progreso de lectura (top) */
+.scroll-progress{
+  position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  box-shadow:0 0 14px rgba(102,116,255,.65);
+}
+
+/* entrada coreografiada del hero */
+@keyframes heroIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hero>.badge{animation:heroIn .75s cubic-bezier(.22,.61,.36,1) both}
+h1{animation:heroIn .75s cubic-bezier(.22,.61,.36,1) both, gradientMove 9s ease 1.2s infinite}
+.hero>p{animation:heroIn .75s cubic-bezier(.22,.61,.36,1) .18s both}
+.hero>.stats{animation:heroIn .75s cubic-bezier(.22,.61,.36,1) .28s both}
+.hero>.progress-wrap{animation:heroIn .75s cubic-bezier(.22,.61,.36,1) .38s both}
+
+/* gradiente animado del titular */
+h1{background-size:220% 220%;-webkit-text-fill-color:transparent}
+@keyframes gradientMove{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* parallax de símbolos */
+.math-orbit{transition:transform .4s ease-out;will-change:transform}
+
+/* resplandor que sigue al cursor */
+.stat,.practice-card,.topic{position:relative;overflow:hidden}
+.stat:before,.practice-card:before,.topic:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%), rgba(124,140,255,.13), transparent 65%);
+  opacity:0;transition:opacity .35s;
+}
+.stat:hover:before,.practice-card:hover:before,.topic:hover:before{opacity:1}
+
+/* módulos: transición de borde + chevron con vida */
+.module{transition:border-color .25s}
+.module:hover{border-color:rgba(124,140,255,.2)}
+.num{transition:box-shadow .3s,background .3s}
+.module summary:hover .num{box-shadow:0 0 18px rgba(102,116,255,.45)}
+.module.complete summary:hover .num{box-shadow:0 0 18px rgba(67,217,178,.5)}
+
+/* recompensa al completar un módulo */
+.module.complete{border-color:rgba(67,217,178,.4)}
+.module.complete .num{background:linear-gradient(135deg,#43d9b2,#ffc857);color:#061018;box-shadow:0 0 22px rgba(67,217,178,.35)}
+.mod-prog .track i{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.module.complete .mod-prog .track i{background:linear-gradient(90deg,#43d9b2,#ffc857)}
+
+/* apertura con fundido de cuerpos (complementa al acordeón animado) */
+.module[open] .moduleBody{animation:bodyIn .35s ease}
+.exercise[open] .answer{animation:bodyIn .25s ease}
+#practiceSolution:not(.hidden){animation:bodyIn .3s ease}
+@keyframes bodyIn{from{opacity:0}to{opacity:1}}
+
+/* checkboxes personalizados con check animado */
+.check{cursor:pointer;user-select:none;transition:color .2s}
+.check:hover{color:#fff}
+.check input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;border-radius:7px;margin:0;padding:0;
+  border:1.5px solid rgba(255,255,255,.28);background:#0a1020;color:inherit;
+  display:grid;place-items:center;cursor:pointer;flex:none;
+  transition:background .2s,border-color .2s,transform .12s,box-shadow .2s;
+}
+.check input[type="checkbox"]:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.15)}
+.check input[type="checkbox"]:active{transform:scale(.88)}
+.check input[type="checkbox"]:after{
+  content:"";width:10px;height:6px;
+  border-left:2.4px solid #061018;border-bottom:2.4px solid #061018;
+  transform:rotate(-45deg) scale(0) translate(1px,-1px);
+  transition:transform .22s cubic-bezier(.2,.9,.3,1.5);
+}
+.check input[type="checkbox"]:checked{
+  background:linear-gradient(135deg,#6674ff,#43d9b2);border-color:transparent;
+}
+.check input[type="checkbox"]:checked:after{transform:rotate(-45deg) scale(1) translate(1px,-1px)}
+.check input[type="checkbox"]:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.check:has(input:checked){color:var(--accent2)}
+
+/* botones: sensación física al pulsar */
+button:active{transform:scale(.96)}
+
+/* shimmer en la barra de progreso del hero */
+.progress-wrap .progress i{position:relative;overflow:hidden}
+.progress-wrap .progress i:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:translateX(-100%);animation:shimmer 2.8s ease infinite;
+}
+@keyframes shimmer{55%,100%{transform:translateX(100%)}}
+
+/* ejercicios del examen con entrada escalonada */
+#examResult .exercise{animation:rise .45s cubic-bezier(.22,.61,.36,1) both}
+#examResult .exercise:nth-child(1){animation-delay:.04s}
+#examResult .exercise:nth-child(2){animation-delay:.09s}
+#examResult .exercise:nth-child(3){animation-delay:.14s}
+#examResult .exercise:nth-child(4){animation-delay:.19s}
+#examResult .exercise:nth-child(5){animation-delay:.24s}
+
+/* badge del modal según nivel */
+.badge.lvl-easy{border-color:rgba(67,217,178,.45);background:rgba(67,217,178,.1);color:#aeeedc}
+.badge.lvl-medium{border-color:rgba(255,200,87,.45);background:rgba(255,200,87,.1);color:#ffe3a3}
+.badge.lvl-hard{border-color:rgba(255,107,122,.45);background:rgba(255,107,122,.12);color:#ffb3bc}
+
+/* emoji de las tarjetas de práctica con vida */
+.practice-card span{display:inline-block;transition:transform .3s cubic-bezier(.2,.9,.3,1.4)}
+.practice-card:hover span{transform:scale(1.18) rotate(-8deg)}
+.exam-box h3{margin:0 0 8px}
+
+/* salida suave del modal */
+.modal.closing{animation:fadeOut .18s ease forwards}
+.modal.closing .modal-card{animation:popOut .18s ease forwards}
+@keyframes fadeOut{to{opacity:0}}
+/* =========================================================
+   DETALLITOS (ronda 3)
+   Tema claro, confeti, toasts de felicitación y sonidos.
+   ========================================================= */
+
+/* botones de icono en la toolbar */
+.toolbar .icon-btn{flex:none;width:44px;padding:10px 0;text-align:center;font-size:1rem}
+
+/* ---------- toast de notificación ---------- */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,18px);
+  z-index:90;display:flex;align-items:center;gap:10px;
+  background:rgba(17,26,48,.93);color:#eef3ff;border:1px solid var(--border);
+  border-radius:14px;padding:12px 20px;box-shadow:var(--shadow);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  font-weight:600;font-size:.94rem;opacity:0;pointer-events:none;
+  transition:opacity .3s,transform .3s cubic-bezier(.2,.9,.3,1.2);
+  max-width:min(92vw,480px);text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* lienzo de confeti */
+.confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:80}
+
+/* ---------- TEMA CLARO ---------- */
+html[data-theme="light"]{
+  --bg:#f3f5fb;--panel:#ffffff;--panel2:#eef1fa;--text:#131b2e;--muted:#5a6577;
+  --accent:#4f5fd9;--accent2:#0d9e7b;--gold:#c98600;--danger:#d93048;
+  --border:rgba(19,27,46,.12);--shadow:0 20px 50px rgba(30,40,80,.12);
+}
+html[data-theme="light"] body{background:radial-gradient(circle at 15% 10%,#dfe7ff 0,transparent 32%),radial-gradient(circle at 85% 15%,#d3efe7 0,transparent 28%),var(--bg)}
+html[data-theme="light"] body:before{background-image:linear-gradient(rgba(19,27,46,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(19,27,46,.05) 1px,transparent 1px)}
+html[data-theme="light"] h1{background:linear-gradient(110deg,#131b2e,#4f5fd9 45%,#0d9e7b);-webkit-background-clip:text;background-clip:text;background-size:220% 220%}
+html[data-theme="light"] .badge{color:#3c4a8a;background:rgba(19,27,46,.05)}
+html[data-theme="light"] .stat{background:rgba(255,255,255,.85)}
+html[data-theme="light"] .progress{background:rgba(19,27,46,.08)}
+html[data-theme="light"] .toolbar{background:rgba(255,255,255,.9)}
+html[data-theme="light"] input{background:#eef1fa;color:#131b2e}
+html[data-theme="light"] button{background:#e9edf8;color:#131b2e}
+html[data-theme="light"] .btn-primary{color:#061018}
+html[data-theme="light"] .module{background:rgba(255,255,255,.94)}
+html[data-theme="light"] .module summary:hover{background:rgba(19,27,46,.03)}
+html[data-theme="light"] .topic{background:rgba(19,27,46,.02)}
+html[data-theme="light"] .topic:hover{background:rgba(19,27,46,.04)}
+html[data-theme="light"] .topic h3{color:#1c2745}
+html[data-theme="light"] .topic h4{color:#4f5fd9}
+html[data-theme="light"] .topic p{color:#46506a}
+html[data-theme="light"] .formula{background:#eef2fc;color:#0a7a5f}
+html[data-theme="light"] .exercise{background:#f5f7fe}
+html[data-theme="light"] .exercise summary{color:#1c2745}
+html[data-theme="light"] .exercise summary:hover{color:#000}
+html[data-theme="light"] .exercise .answer{color:#0a7a5f}
+html[data-theme="light"] .example{background:rgba(201,134,0,.08)}
+html[data-theme="light"] .check{color:#46506a}
+html[data-theme="light"] .check:hover{color:#131b2e}
+html[data-theme="light"] .check input[type="checkbox"]{background:#fff;border-color:rgba(19,27,46,.3)}
+html[data-theme="light"] .practice-card{background:rgba(255,255,255,.7)}
+html[data-theme="light"] .solution{background:rgba(13,158,123,.08)}
+html[data-theme="light"] .modal{background:rgba(28,38,70,.45)}
+html[data-theme="light"] .modal-card{background:#ffffff}
+html[data-theme="light"] #practiceQuestion{background:#eef2fc}
+html[data-theme="light"] textarea{background:#eef1fa;color:#131b2e}
+html[data-theme="light"] .mod-prog .track{background:rgba(19,27,46,.1)}
+html[data-theme="light"] .to-top{background:#ffffff}
+html[data-theme="light"] .math-orbit span{color:rgba(79,95,217,.14)}
+html[data-theme="light"] .badge.lvl-easy{color:#0a7a5f;background:rgba(13,158,123,.1)}
+html[data-theme="light"] .badge.lvl-medium{color:#9a6c00;background:rgba(201,134,0,.12)}
+html[data-theme="light"] .badge.lvl-hard{color:#b32540;background:rgba(217,48,72,.1)}
+html[data-theme="light"] .toast{background:rgba(255,255,255,.95);color:#131b2e}
+html[data-theme="light"] ::-webkit-scrollbar-track{background:#f3f5fb}
+html[data-theme="light"] ::-webkit-scrollbar-thumb{background:#c3cbe3;border-color:#f3f5fb}
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover{background:#a8b3d4}
+
+/* =========================================================
+   CONTENIDO DIDÁCTICO (ronda 4)
+   Cajas "Cómo se hace" y soluciones paso a paso.
+   ========================================================= */
+.howto{
+  margin-top:14px;padding:14px 16px 12px;
+  background:rgba(124,140,255,.05);
+  border:1px dashed rgba(124,140,255,.3);border-radius:12px;
+}
+.howto>b{
+  display:block;font-family:"JetBrains Mono",monospace;
+  font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:8px;
+}
+.howto ol{margin:0;padding-left:20px;color:var(--muted);font-size:.92rem}
+.howto li{margin:5px 0}
+.howto li::marker{color:var(--accent);font-weight:600;font-family:"JetBrains Mono",monospace}
+
+/* pasos dentro de las respuestas */
+.answer .step{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:6px 0;border-top:1px dashed var(--border);
+}
+.answer .step:first-child{border-top:none;padding-top:0}
+.answer .step b{
+  font-family:"JetBrains Mono",monospace;font-weight:600;font-size:.72rem;
+  color:var(--accent);border:1px solid var(--border);border-radius:6px;
+  min-width:21px;height:21px;display:grid;place-items:center;flex:none;margin-top:1px;
+}
+.answer .step.final{font-weight:600}
+.answer .step.final b{
+  color:var(--accent2);border-color:rgba(67,217,178,.5);border-radius:8px;
+}
+.answer .step.final span{color:var(--accent2)}
+
+/* soluciones del modal y del examen (texto plano con saltos de línea) */
+#practiceSolution{white-space:pre-line;line-height:1.7}
+#examResult .answer{white-space:pre-line;line-height:1.7}
+
+/* tema claro */
+html[data-theme="light"] .howto{background:rgba(79,95,217,.05);border-color:rgba(79,95,217,.32)}
+html[data-theme="light"] .howto ol{color:#46506a}
+html[data-theme="light"] .answer .step b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+<header class="hero">
+  <div class="math-orbit" aria-hidden="true">
+    <span style="--x:5%;--y:16%;--s:2.1rem;--d:0s">∫</span>
+    <span style="--x:89%;--y:20%;--s:1.9rem;--d:.8s">∑</span>
+    <span style="--x:82%;--y:62%;--s:1.5rem;--d:1.6s">π</span>
+    <span style="--x:11%;--y:68%;--s:1.7rem;--d:2.4s">√</span>
+    <span style="--x:94%;--y:78%;--s:1.4rem;--d:.4s">λ</span>
+    <span style="--x:3%;--y:44%;--s:1.5rem;--d:2s">Δ</span>
+    <span style="--x:70%;--y:10%;--s:1.7rem;--d:1.2s">∂</span>
+    <span style="--x:28%;--y:8%;--s:1.4rem;--d:2.8s">∞</span>
+  </div>
+  <span class="badge">MATHFORGE · Ruta hacia Física</span>
+  <h1>Domina las matemáticas.
+Construye tu camino a Física.</h1>
+  <p>Una ruta progresiva desde los fundamentos hasta cálculo, álgebra lineal y matemáticas para Física. Lee la teoría, estudia los ejemplos y resuelve los ejercicios. El objetivo no es memorizar: es entender.</p>
+  <div class="stats">
+    <div class="stat"><strong id="done">0%</strong><span>progreso</span></div>
+    <div class="stat"><strong id="count">0</strong><span>temas completados</span></div>
+    <div class="stat"><strong>7</strong><span>niveles</span></div>
+    <div class="stat"><strong>∞</strong><span>práctica</span></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress"><i id="progFill"></i></div>
+    <span class="progress-label">Progreso de la ruta · <b id="progText">0%</b></span>
+  </div>
+</header>
+
+<main>
+<div class="toolbar">
+  <input id="search" type="search" placeholder="🔎 Buscar: derivadas, fracciones, vectores...">
+  <button onclick="expandAll()">Abrir todo</button>
+  <button onclick="collapseAll()">Cerrar todo</button>
+  <button onclick="resetProgress()">Reiniciar progreso</button>
+  <button id="themeToggle" class="icon-btn" aria-label="Cambiar entre tema claro y oscuro" title="Cambiar tema">☀️</button>
+  <button id="soundToggle" class="icon-btn" aria-label="Activar o silenciar los sonidos" title="Sonidos">🔊</button>
+</div>
+<div id="modules">
+
+<details class="module" open>
+<summary><div class="num">0</div><div class="summaryText"><h2>Fundamentos</h2><p>La base que necesitas para no atascarte después.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>0.1 Operaciones y jerarquía</h3>
+<p>Imagina que dos personas calculan <b>3 + 2 × 5</b> y obtienen cosas distintas: una 25 y otra 13. Solo una hace bien, porque existe un <b>orden convenido</b> para operar. Dominarlo evita el error más frecuente al empezar.</p>
+<p>La regla: primero los <b>paréntesis</b> (si hay varios, de dentro hacia fuera), después <b>potencias y raíces</b>, luego <b>multiplicaciones y divisiones</b> y por último <b>sumas y restas</b>. Cuando dos operaciones tienen la misma prioridad (× con ÷, o + con −), se resuelven <b>de izquierda a derecha</b>.</p>
+<div class="formula">3 + 2 × 5 = 3 + 10 = 13    (la × va antes que la +; 25 sería un error)</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Localiza los paréntesis y resuélvelos primero, del más interno al más externo.</li><li>Calcula potencias y raíces.</li><li>Resuelve multiplicaciones y divisiones en orden, de izquierda a derecha.</li><li>Termina con las sumas y restas, también de izquierda a derecha.</li><li>Verificación rápida: haz una estimación mental para comprobar que el resultado es razonable.</li></ol></div>
+<div class="example"><b>Ejemplo:</b> 2(3+4)² ÷ 7 → paréntesis: (3+4) = 7 → potencia: 7² = 49 → multiplicación: 2 · 49 = 98 → división: 98 ÷ 7 = 14.</div>
+<details class="exercise"><summary>Ejercicio 1 — calcula: 8 + 3·4 − 6</summary><div class="answer"><div class="step"><b>1</b><span>La multiplicación tiene prioridad sobre la suma y la resta: 3·4 = 12.</span></div><div class="step"><b>2</b><span>Sustituye el resultado: 8 + 12 − 6.</span></div><div class="step"><b>3</b><span>Opera de izquierda a derecha: 8 + 12 = 20.</span></div><div class="step final"><b>✓</b><span>Respuesta: 14.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — calcula: (5+3)² − 4·6</summary><div class="answer"><div class="step"><b>1</b><span>Paréntesis primero: (5+3) = 8.</span></div><div class="step"><b>2</b><span>Potencia: 8² = 64.</span></div><div class="step"><b>3</b><span>Multiplicación pendiente: 4·6 = 24.</span></div><div class="step"><b>4</b><span>Termina con la resta: 64 − 24.</span></div><div class="step final"><b>✓</b><span>Respuesta: 40.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — calcula: 18 ÷ 3 + 2(5−1)</summary><div class="answer"><div class="step"><b>1</b><span>Paréntesis: (5−1) = 4.</span></div><div class="step"><b>2</b><span>División y multiplicación antes de sumar: 18 ÷ 3 = 6 y 2·4 = 8.</span></div><div class="step"><b>3</b><span>Suma los resultados: 6 + 8.</span></div><div class="step final"><b>✓</b><span>Respuesta: 14.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>0.2 Fracciones</h3>
+<p>Una fracción es una división escrita en dos pisos: el <b>numerador</b> (arriba) indica cuántas partes tomas y el <b>denominador</b> (abajo) en cuántas partes iguales se corta el todo. Dominarlas es imprescindible: aparecen en razones trigonométricas, probabilidades y en la mayoría de fórmulas de Física.</p>
+<p>Las reglas clave: para <b>sumar o restar</b> necesitas el mismo denominador (busca uno común, por ejemplo el mínimo común múltiplo); para <b>multiplicar</b> se multiplican numeradores y denominadores directamente; y para <b>dividir</b> se multiplica la primera fracción por el inverso de la segunda.</p>
+<div class="formula">a/b + c/d = (ad+bc)/bd    |    (a/b) ÷ (c/d) = (a/b)(d/c)</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Busca un denominador común (multiplicar los dos denominadores siempre funciona; el mcm suele dejar números más pequeños).</li><li>Convierte cada fracción multiplicando numerador y denominador por lo que falte.</li><li>Suma o resta solo los numeradores y conserva el denominador.</li><li>Simplifica el resultado final siempre que sea posible.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — 3/4 + 2/3</summary><div class="answer"><div class="step"><b>1</b><span>Denominador común: mcm(4, 3) = 12.</span></div><div class="step"><b>2</b><span>Convierte: 3/4 = 9/12 (multiplica arriba y abajo por 3) y 2/3 = 8/12 (por 4).</span></div><div class="step"><b>3</b><span>Suma los numeradores conservando el denominador: 9/12 + 8/12.</span></div><div class="step final"><b>✓</b><span>Respuesta: 17/12 (ya es irreducible).</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — 5/6 − 1/4</summary><div class="answer"><div class="step"><b>1</b><span>Denominador común: mcm(6, 4) = 12.</span></div><div class="step"><b>2</b><span>Convierte: 5/6 = 10/12 y 1/4 = 3/12.</span></div><div class="step"><b>3</b><span>Resta los numeradores: 10 − 3 = 7.</span></div><div class="step final"><b>✓</b><span>Respuesta: 7/12.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — (2/5) ÷ (4/15)</summary><div class="answer"><div class="step"><b>1</b><span>Dividir entre una fracción es multiplicar por su inverso: (2/5) · (15/4).</span></div><div class="step"><b>2</b><span>Multiplica numeradores y denominadores: 2·15 = 30 y 5·4 = 20 → 30/20.</span></div><div class="step"><b>3</b><span>Simplifica dividiendo numerador y denominador entre 10.</span></div><div class="step final"><b>✓</b><span>Respuesta: 3/2.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>0.3 Potencias, raíces y notación científica</h3>
+<p>Una potencia es una multiplicación repetida: 2⁵ significa 2·2·2·2·2 (la base multiplicada por sí misma tantas veces como indica el exponente). Las <b>reglas de los exponentes</b> permiten simplificar expresiones enormes sin calcular nada, y una raíz no es más que un exponente fraccionario: √a = a<sup>1/2</sup>.</p>
+<p>La <b>notación científica</b> escribe los números como <i>a × 10ⁿ</i> con 1 ≤ a &lt; 10. Es el idioma estándar de la ciencia: el átomo de hidrógeno mide unos 10⁻¹⁰ m y el Sol pesa unos 2×10³⁰ kg. Sin ella, trabajar con esos números sería imposible.</p>
+<div class="formula">aᵐ·aⁿ=aᵐ⁺ⁿ   |   aᵐ/aⁿ=aᵐ⁻ⁿ   |   (aᵐ)ⁿ=aᵐⁿ</div>
+<div class="howto"><b>Cómo se hace — notación científica</b><ol><li>Mueve la coma decimal hasta que delante quede un solo dígito distinto de cero.</li><li>Cuenta cuántas posiciones se ha movido la coma: ese es el exponente.</li><li>Signo del exponente: positivo si el número original es grande (≥ 10), negativo si es pequeño (&lt; 1).</li><li>Escribe el resultado como a × 10ⁿ y comprueba que 1 ≤ a &lt; 10.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — simplifica 2³·2⁵</summary><div class="answer"><div class="step"><b>1</b><span>Es la misma base multiplicándose: los exponentes se suman.</span></div><div class="step"><b>2</b><span>3 + 5 = 8, así que queda 2⁸.</span></div><div class="step final"><b>✓</b><span>Respuesta: 2⁸ = 256.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — simplifica (x³)²</summary><div class="answer"><div class="step"><b>1</b><span>Potencia de otra potencia: los exponentes se multiplican.</span></div><div class="step"><b>2</b><span>3 · 2 = 6.</span></div><div class="step final"><b>✓</b><span>Respuesta: x⁶.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — escribe 0,00045 en notación científica</summary><div class="answer"><div class="step"><b>1</b><span>Mueve la coma hasta que delante quede un solo dígito distinto de cero: queda 4,5.</span></div><div class="step"><b>2</b><span>La coma ha viajado 4 posiciones hacia la derecha.</span></div><div class="step"><b>3</b><span>Como el número original es menor que 1, el exponente es negativo: 10⁻⁴.</span></div><div class="step final"><b>✓</b><span>Respuesta: 4,5 × 10⁻⁴.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">1</div><div class="summaryText"><h2>Álgebra</h2><p>Aprende a manipular símbolos y resolver ecuaciones.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>1.1 Expresiones algebraicas y polinomios</h3>
+<p>Una <b>variable</b> es una letra que representa un número que puede cambiar o que aún no conoces. Un <b>polinomio</b> es una suma de términos formados por coeficientes y potencias enteras no negativas de una variable, como 3x² − 5x + 2. Es el vocabulario básico del álgebra.</p>
+<p>Dos técnicas mandan aquí: <b>reducir términos semejantes</b> (juntar los que tienen la misma parte literal) y <b>desarrollar productos</b> con la propiedad distributiva. Los productos notables, como (a+b)(a−b) = a²−b², son atajos que conviene reconocer a simple vista.</p>
+<div class="formula">P(x)=3x²−5x+2</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Para simplificar, marca los términos que comparten parte literal (misma letra y mismo exponente).</li><li>Suma o resta solo los coeficientes; la parte literal se queda igual.</li><li>Para desarrollar (a+b)(c+d): multiplica cada término del primer paréntesis por cada término del segundo (4 productos).</li><li>Para factorizar, busca patrones: factor común o productos notables.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — reduce 3x+5−2x+7</summary><div class="answer"><div class="step"><b>1</b><span>Agrupa los términos con x: 3x − 2x = x.</span></div><div class="step"><b>2</b><span>Agrupa los números sueltos: 5 + 7 = 12.</span></div><div class="step final"><b>✓</b><span>Respuesta: x + 12.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — desarrolla (x+3)(x−2)</summary><div class="answer"><div class="step"><b>1</b><span>Doble distributiva: x·x = x²; x·(−2) = −2x; 3·x = 3x; 3·(−2) = −6.</span></div><div class="step"><b>2</b><span>Junta todo: x² − 2x + 3x − 6.</span></div><div class="step"><b>3</b><span>Reduce términos semejantes: −2x + 3x = x.</span></div><div class="step final"><b>✓</b><span>Respuesta: x² + x − 6.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — factoriza x²−9</summary><div class="answer"><div class="step"><b>1</b><span>Reconoce el patrón: es una diferencia de cuadrados, a²−b², con a = x y b = 3.</span></div><div class="step"><b>2</b><span>Aplica la identidad a²−b² = (a−b)(a+b).</span></div><div class="step"><b>3</b><span>Comprobación: (x−3)(x+3) = x² + 3x − 3x − 9 = x² − 9 ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: (x−3)(x+3).</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>1.2 Ecuaciones y sistemas</h3>
+<p>Resolver una ecuación es encontrar los valores que hacen verdadera la igualdad. La idea guía es la de una <b>balanza</b>: ambos lados pesan lo mismo, así que cualquier cosa que hagas en un lado (sumar, restar, multiplicar, dividir) debes hacerla también en el otro.</p>
+<p>Un <b>sistema</b> es un conjunto de ecuaciones que deben cumplirse a la vez. El método de <b>reducción</b> (sumar las ecuaciones para eliminar una incógnita) y el de <b>sustitución</b> (despejar una incógnita y llevarla a la otra ecuación) resuelven los casos básicos.</p>
+<div class="formula">2x+5=17 → 2x=12 → x=6</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Simplifica cada lado por separado (quita paréntesis, reduce términos).</li><li>Agrupa: pasa todos los términos con x a un lado y los números al otro, cambiando el signo al cruzar.</li><li>Despeja x dividiendo entre su coeficiente.</li><li>Comprueba: sustituye la solución en la ecuación original y verifica que se cumple.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — resuelve 4x−7=21</summary><div class="answer"><div class="step"><b>1</b><span>Suma 7 en ambos lados para aislar el término con x: 4x = 21 + 7 = 28.</span></div><div class="step"><b>2</b><span>Divide ambos lados entre 4: x = 28/4 = 7.</span></div><div class="step"><b>3</b><span>Comprobación: 4·7 − 7 = 28 − 7 = 21 ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: x = 7.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — resuelve x²−5x+6=0</summary><div class="answer"><div class="step"><b>1</b><span>Busca dos números que multipliquen +6 y sumen −5: son −2 y −3.</span></div><div class="step"><b>2</b><span>Factoriza: (x−2)(x−3) = 0.</span></div><div class="step"><b>3</b><span>Si un producto es cero, alguno de los factores es cero: x−2 = 0 o x−3 = 0.</span></div><div class="step final"><b>✓</b><span>Respuesta: x = 2 o x = 3.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — sistema: x+y=10, x−y=2</summary><div class="answer"><div class="step"><b>1</b><span>Reducción: suma las dos ecuaciones miembro a miembro: (x+y) + (x−y) = 10 + 2 → 2x = 12.</span></div><div class="step"><b>2</b><span>Despeja: x = 6.</span></div><div class="step"><b>3</b><span>Sustituye en la primera ecuación: 6 + y = 10 → y = 4.</span></div><div class="step"><b>4</b><span>Comprobación en la segunda: 6 − 4 = 2 ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: x = 6, y = 4.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>1.3 Logaritmos y exponenciales</h3>
+<p>El logaritmo es la operación inversa de la exponencial: responde a la pregunta <i>«¿a qué exponente debo elevar la base para obtener este número?»</i>. Así, log₂(8) = 3 porque 2³ = 8.</p>
+<p>Sus propiedades convierten multiplicaciones en sumas y potencias en productos, lo que los hace ideales para fenómenos que crecen muy deprisa: decibelios, escala de Richter, pH o desintegración radiactiva. En Física verás sobre todo el <b>logaritmo natural</b>, ln, de base e ≈ 2,718.</p>
+<div class="formula">log_b(x)=y ⇔ bʸ=x</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Escribe la definición: log_b(x) = y significa exactamente bʸ = x.</li><li>Expresa el argumento como potencia de la base, si es posible.</li><li>Iguala los exponentes y resuelve.</li><li>Recuerda: el argumento de un logaritmo siempre debe ser positivo.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — log₂(32)</summary><div class="answer"><div class="step"><b>1</b><span>Traduce con la definición: log₂(32) = y significa 2ʸ = 32.</span></div><div class="step"><b>2</b><span>Escribe 32 como potencia de 2: 32 = 2⁵.</span></div><div class="step final"><b>✓</b><span>Respuesta: y = 5.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — resuelve 3ˣ=81</summary><div class="answer"><div class="step"><b>1</b><span>Escribe 81 como potencia de 3: 81 = 3·3·3·3 = 3⁴.</span></div><div class="step"><b>2</b><span>Con bases iguales, los exponentes deben coincidir: x = 4.</span></div><div class="step final"><b>✓</b><span>Respuesta: x = 4.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — simplifica log(ab)</summary><div class="answer"><div class="step"><b>1</b><span>Aplica la propiedad del producto: el logaritmo de un producto es la suma de logaritmos.</span></div><div class="step"><b>2</b><span>Condición de validez: los argumentos deben ser positivos, a &gt; 0 y b &gt; 0.</span></div><div class="step final"><b>✓</b><span>Respuesta: log(a) + log(b).</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">2</div><div class="summaryText"><h2>Funciones</h2><p>El lenguaje matemático que conecta cantidades.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>2.1 Qué es una función</h3>
+<p>Una función es una <b>máquina de entrada-salida</b>: le das un número x y te devuelve exactamente un número f(x). La condición clave es que cada entrada válida tenga una única salida. Evaluar f(4) significa sustituir x por 4 dondequiera que aparezca.</p>
+<p>El <b>dominio</b> es el conjunto de entradas permitidas y el <b>recorrido</b> (o imagen), el de las salidas que realmente se obtienen. En Física, expresar una magnitud «en función de» otra —la posición en función del tiempo— es el paso previo a todo el análisis.</p>
+<div class="formula">f(x)=2x+3 → f(4)=2·4+3=11</div>
+<div class="howto"><b>Cómo se hace — dominio</b><ol><li>Busca operaciones con restricción: divisiones (el denominador ≠ 0), raíces de índice par (el radicando ≥ 0) y logaritmos (el argumento &gt; 0).</li><li>Escribe cada restricción como una desigualdad y resuélvela.</li><li>El dominio son todos los reales salvo los valores prohibidos.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — calcula f(−2) si f(x)=x²+3x</summary><div class="answer"><div class="step"><b>1</b><span>Sustituye cada x por −2, con paréntesis para no perder el signo: f(−2) = (−2)² + 3(−2).</span></div><div class="step"><b>2</b><span>Calcula: (−2)² = 4 y 3(−2) = −6.</span></div><div class="step final"><b>✓</b><span>Respuesta: 4 − 6 = −2.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — dominio de f(x)=1/(x−3)</summary><div class="answer"><div class="step"><b>1</b><span>Hay una división: el denominador no puede ser cero.</span></div><div class="step"><b>2</b><span>Restricción: x − 3 ≠ 0 → x ≠ 3.</span></div><div class="step final"><b>✓</b><span>Respuesta: todos los reales excepto 3, es decir ℝ∖{3}.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — si f(x)=2x+1 y g(x)=x², calcula f(g(3))</summary><div class="answer"><div class="step"><b>1</b><span>Las composiciones se trabajan de dentro hacia fuera. Primero la función interior: g(3) = 3² = 9.</span></div><div class="step"><b>2</b><span>Mete el resultado en f: f(9) = 2·9 + 1.</span></div><div class="step final"><b>✓</b><span>Respuesta: 19.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>2.2 Funciones polinómicas, racionales, exponenciales y logarítmicas</h3>
+<p>Conviene reconocer cuatro familias: las <b>polinómicas</b> (curvas suaves y continuas), las <b>racionales</b> (cocientes de polinomios, con huecos y asíntotas donde el denominador se anula), las <b>exponenciales</b> (crecen o decrecen tanto más rápido cuanto más grandes son) y las <b>logarítmicas</b> (la inversa de la exponencial: crecen cada vez más despacio).</p>
+<p>Ante cualquier función, fíjate siempre en lo mismo: dominio, cortes con los ejes (raíces), signo y comportamiento cuando x se hace muy grande o muy pequeña. Ese «retrato robot» te dice casi todo sobre ella.</p>
+<div class="howto"><b>Cómo se hace</b><ol><li>Raíces (cortes con el eje x): resuelve f(x) = 0.</li><li>Corte con el eje y: calcula f(0).</li><li>En racionales, las asíntotas verticales están donde el denominador vale 0.</li><li>Comportamiento extremo: en polinomios manda el término de mayor grado; en exponenciales de base mayor que 1, todo crece sin límite.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — raíces de x²−4x+3</summary><div class="answer"><div class="step"><b>1</b><span>Busca dos números que multipliquen +3 y sumen +4: 1 y 3.</span></div><div class="step"><b>2</b><span>Factoriza: (x−1)(x−3) = 0.</span></div><div class="step"><b>3</b><span>Algún factor debe valer cero.</span></div><div class="step final"><b>✓</b><span>Respuesta: x = 1 y x = 3.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — ¿qué ocurre con 2ˣ cuando x→∞?</summary><div class="answer"><div class="step"><b>1</b><span>La base es mayor que 1: cada paso multiplica el valor por 2.</span></div><div class="step"><b>2</b><span>1 → 2 → 4 → 8 → … los valores superan cualquier cantidad que imagines.</span></div><div class="step final"><b>✓</b><span>Respuesta: crece sin límite (tiende a +∞).</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — dominio de ln(x−2)</summary><div class="answer"><div class="step"><b>1</b><span>El argumento de un logaritmo debe ser estrictamente positivo.</span></div><div class="step"><b>2</b><span>Restricción: x − 2 &gt; 0.</span></div><div class="step"><b>3</b><span>Despeja: x &gt; 2.</span></div><div class="step final"><b>✓</b><span>Respuesta: dominio (2, ∞).</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>2.3 Trigonometría</h3>
+<p>En un triángulo rectángulo, los lados se nombran según el ángulo que estudies: la <b>hipotenusa</b> (el más largo, frente al ángulo recto), el <b>cateto opuesto</b> (frente a tu ángulo) y el <b>cateto adyacente</b> (pegado a tu ángulo). Seno, coseno y tangente son razones fijas entre esos lados: solo dependen del ángulo, no del tamaño del triángulo.</p>
+<p>Conviene memorizar los valores de 30°, 45° y 60° (salen de cortar un triángulo equilátero y un cuadrado por la mitad). Y hay una identidad que lo conecta todo: <b>sin²θ + cos²θ = 1</b>. Será tu pan de cada día en ondas, oscilaciones y mecánica.</p>
+<div class="formula">sin θ = opuesto/hipotenusa · cos θ = adyacente/hipotenusa · tan θ = opuesto/adyacente</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Dibuja el triángulo y etiqueta hipotenusa, cateto opuesto y cateto adyacente respecto al ángulo dado.</li><li>Elige la razón que relaciona el lado conocido con el buscado (sin, cos o tan).</li><li>Plantea la igualdad y despeja la incógnita.</li><li>Si falta una razón, usa sin²θ + cos²θ = 1 y fíjate en el signo (ángulo agudo → todo positivo).</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — sin(30°)</summary><div class="answer"><div class="step"><b>1</b><span>En el triángulo notable 30-60-90, el cateto opuesto al ángulo de 30° mide exactamente la mitad de la hipotenusa.</span></div><div class="step"><b>2</b><span>Entonces sin(30°) = cateto/hipotenusa = 1/2.</span></div><div class="step final"><b>✓</b><span>Respuesta: 1/2.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — cos(60°)</summary><div class="answer"><div class="step"><b>1</b><span>En ese mismo triángulo, el cateto adyacente a 60° es también la mitad de la hipotenusa (es el mismo lado que el opuesto a 30°).</span></div><div class="step"><b>2</b><span>cos(60°) = adyacente/hipotenusa = 1/2.</span></div><div class="step final"><b>✓</b><span>Respuesta: 1/2.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — usa sin²θ+cos²θ=1 para hallar cos θ si sin θ=3/5 y θ es agudo</summary><div class="answer"><div class="step"><b>1</b><span>Despeja de la identidad: cos²θ = 1 − sin²θ.</span></div><div class="step"><b>2</b><span>Sustituye: sin²θ = (3/5)² = 9/25.</span></div><div class="step"><b>3</b><span>Calcula: 1 − 9/25 = 16/25.</span></div><div class="step"><b>4</b><span>Raíz cuadrada: cos θ = ±4/5. Como θ es agudo, el coseno es positivo.</span></div><div class="step final"><b>✓</b><span>Respuesta: 4/5.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">3</div><div class="summaryText"><h2>Geometría y vectores</h2><p>La geometría que después se convierte en lenguaje de Física.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>3.1 Geometría analítica</h3>
+<p>La geometría analítica traduce figuras a números: cada punto es una pareja (x, y) y cada curva, una ecuación. Gracias a eso, medir distancias o pendientes se convierte en álgebra pura.</p>
+<p>La <b>distancia</b> entre dos puntos es Pitágoras aplicado a su triángulo: la diferencia de x al cuadrado más la de y al cuadrado, y raíz cuadrada. La <b>pendiente</b> mide la inclinación: cuántas unidades sube y por cada unidad que avanza x.</p>
+<div class="formula">d = √[(x₂−x₁)²+(y₂−y₁)²]     ·     m = (y₂−y₁)/(x₂−x₁)</div>
+<div class="howto"><b>Cómo se hace — recta por dos puntos</b><ol><li>Calcula la pendiente: m = (y₂−y₁)/(x₂−x₁).</li><li>Coge cualquiera de los puntos y escribe la forma punto-pendiente: y − y₁ = m(x − x₁).</li><li>Desarrolla y despeja y para obtener la forma y = mx + n.</li><li>Comprueba que el otro punto también cumple la ecuación.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — distancia entre (0,0) y (3,4)</summary><div class="answer"><div class="step"><b>1</b><span>Diferencias: Δx = 3−0 = 3 y Δy = 4−0 = 4.</span></div><div class="step"><b>2</b><span>Aplica la fórmula: d = √(3² + 4²) = √(9 + 16) = √25.</span></div><div class="step final"><b>✓</b><span>Respuesta: 5 (el clásico triángulo 3-4-5).</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — pendiente entre (1,2) y (3,8)</summary><div class="answer"><div class="step"><b>1</b><span>Diferencia de y: 8 − 2 = 6. Diferencia de x: 3 − 1 = 2.</span></div><div class="step"><b>2</b><span>m = 6/2 = 3: la recta sube 3 unidades por cada una que avanza.</span></div><div class="step final"><b>✓</b><span>Respuesta: m = 3.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — ecuación de una recta con pendiente 2 que pasa por (1,3)</summary><div class="answer"><div class="step"><b>1</b><span>Forma punto-pendiente: y − 3 = 2(x − 1).</span></div><div class="step"><b>2</b><span>Desarrolla: y − 3 = 2x − 2 → y = 2x + 1.</span></div><div class="step"><b>3</b><span>Comprobación: si x = 1, entonces y = 2·1 + 1 = 3 ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: y = 2x + 1.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>3.2 Vectores</h3>
+<p>Un vector es una cantidad con <b>magnitud y dirección</b>: no basta con decir «5», hay que decir «5 hacia allá». Se escribe por <b>componentes</b> v = (vₓ, vᵧ), que cuentan cuánto avanza en cada eje. Velocidades, fuerzas y campos eléctricos son vectores.</p>
+<p>Lo esencial: se <b>suman componente a componente</b>; el <b>módulo</b> sale de Pitágoras; y el <b>producto escalar</b> multiplica componentes y suma el resultado: mide cuánto apuntan dos vectores en la misma dirección (si da 0, son perpendiculares).</p>
+<div class="formula">v=(vₓ,vᵧ) · |v|=√(vₓ²+vᵧ²) · a·b = aₓbₓ + aᵧbᵧ</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Suma de vectores: suma las x entre sí y las y entre sí, por separado.</li><li>Módulo: eleva cada componente al cuadrado, suma y haz la raíz.</li><li>Producto escalar: multiplica componentes homólogas y suma: aₓbₓ + aᵧbᵧ.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — módulo de (3,4)</summary><div class="answer"><div class="step"><b>1</b><span>Cuadrados: 3² = 9 y 4² = 16.</span></div><div class="step"><b>2</b><span>Raíz de la suma: √(9+16) = √25.</span></div><div class="step final"><b>✓</b><span>Respuesta: 5.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — suma (2,−1)+(5,3)</summary><div class="answer"><div class="step"><b>1</b><span>Componentes x: 2 + 5 = 7.</span></div><div class="step"><b>2</b><span>Componentes y: −1 + 3 = 2.</span></div><div class="step final"><b>✓</b><span>Respuesta: (7, 2).</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — producto escalar (1,2)·(3,4)</summary><div class="answer"><div class="step"><b>1</b><span>Multiplica las componentes homólogas: 1·3 = 3 y 2·4 = 8.</span></div><div class="step"><b>2</b><span>Suma los productos: 3 + 8.</span></div><div class="step final"><b>✓</b><span>Respuesta: 11.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">4</div><div class="summaryText"><h2>Cálculo</h2><p>Límites, derivadas e integrales: el corazón matemático de gran parte de la Física.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>4.1 Límites y continuidad</h3>
+<p>Un <b>límite</b> describe a qué valor se acerca una función cuando x se aproxima a un punto… aunque en ese punto la función ni siquiera esté definida. Es la pieza que sustenta todo el cálculo: las derivadas y las integrales son, en el fondo, límites.</p>
+<p>La <b>continuidad</b> formaliza la idea de «no hay saltos»: la gráfica se dibuja sin levantar el lápiz. Una función es continua en un punto si el límite existe, la función está definida ahí y ambos valores coinciden.</p>
+<div class="formula">limₓ→a f(x)=L</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Prueba lo fácil: sustituye el valor directamente. Si sale un número, ese es el límite (vale para polinomios y funciones «bien portadas»).</li><li>Si obtienes 0/0 (indeterminación), hay que trabajar más: factoriza, simplifica o racionaliza, y vuelve a sustituir.</li><li>Si el denominador tiende a 0 pero el numerador no, el límite es ±∞ o no existe, según los signos por cada lado.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — limₓ→2 (x²+1)</summary><div class="answer"><div class="step"><b>1</b><span>Es un polinomio: prueba la sustitución directa.</span></div><div class="step"><b>2</b><span>x = 2 → 2² + 1 = 4 + 1.</span></div><div class="step final"><b>✓</b><span>Respuesta: 5.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — limₓ→3 (x²−9)/(x−3)</summary><div class="answer"><div class="step"><b>1</b><span>Sustituir da 0/0: indeterminación. Toca factorizar.</span></div><div class="step"><b>2</b><span>El numerador es diferencia de cuadrados: x²−9 = (x−3)(x+3).</span></div><div class="step"><b>3</b><span>Cancela el factor común: queda x + 3.</span></div><div class="step"><b>4</b><span>Ahora sí, sustituye: 3 + 3.</span></div><div class="step final"><b>✓</b><span>Respuesta: 6.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — ¿es continua f(x)=x² en x=1?</summary><div class="answer"><div class="step"><b>1</b><span>Límite al tender a 1: 1² = 1 (sustitución directa).</span></div><div class="step"><b>2</b><span>Valor de la función: f(1) = 1.</span></div><div class="step"><b>3</b><span>Límite y valor coinciden → cumple la definición de continuidad.</span></div><div class="step final"><b>✓</b><span>Respuesta: sí, es continua en x = 1.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>4.2 Derivadas</h3>
+<p>La <b>derivada</b> mide la tasa de cambio instantánea: cuánto cambia la función justo en un punto. Geométricamente es la pendiente de la recta tangente a la gráfica en ese punto.</p>
+<p>En Física es la herramienta central: la <b>velocidad</b> es la derivada de la posición respecto al tiempo, y la <b>aceleración</b>, la derivada de la velocidad. No derivarás desde la definición cada vez: hay reglas rápidas, y la reina es la regla de la potencia.</p>
+<div class="formula">f'(x)=limₕ→0 [f(x+h)−f(x)]/h   (definición, para entender la idea)</div><div class="formula">d(xⁿ)/dx = n·xⁿ⁻¹   (la regla que usarás siempre)</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Ve término a término: la derivada de una suma es la suma de derivadas.</li><li>En cada término a·xⁿ: baja el exponente multiplicando al coeficiente → n·a·xⁿ⁻¹.</li><li>Las constantes sueltas desaparecen (su derivada es 0).</li><li>Simplifica el resultado.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — deriva x³</summary><div class="answer"><div class="step"><b>1</b><span>Regla de la potencia: baja el exponente 3 multiplicando y réstale 1 al exponente.</span></div><div class="step"><b>2</b><span>3 · x³⁻¹.</span></div><div class="step final"><b>✓</b><span>Respuesta: 3x².</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — deriva 4x²−3x+7</summary><div class="answer"><div class="step"><b>1</b><span>Término 1: 4x² → 4·2·x¹ = 8x.</span></div><div class="step"><b>2</b><span>Término 2: −3x → −3 (x¹ baja a x⁰ = 1).</span></div><div class="step"><b>3</b><span>Término 3: 7 es constante → 0.</span></div><div class="step final"><b>✓</b><span>Respuesta: 8x − 3.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — si x(t)=t³−2t, encuentra v(t)</summary><div class="answer"><div class="step"><b>1</b><span>Física: la velocidad es la derivada de la posición, v(t) = x'(t).</span></div><div class="step"><b>2</b><span>t³ → 3t²; −2t → −2.</span></div><div class="step final"><b>✓</b><span>Respuesta: v(t) = 3t² − 2.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>4.3 Integrales</h3>
+<p>Integrar es el proceso inverso de derivar: buscamos una función cuya derivada sea la que tenemos. Por eso en la <b>integral indefinida</b> aparece siempre «+C»: hay infinitas antiderivadas que solo difieren en una constante.</p>
+<p>La <b>integral definida</b> acumula: suma infinitas rodajas infinitamente finas. Geométricamente es un área bajo la curva; en Física, integrar la velocidad da el desplazamiento e integrar la fuerza, el trabajo. La regla de Barrow lo hace mecánico: evalúa la primitiva arriba y réstale abajo.</p>
+<div class="formula">∫xⁿ dx = xⁿ⁺¹/(n+1)+C, n≠−1</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Sube el exponente una unidad: n → n+1.</li><li>Divide entre ese nuevo exponente.</li><li>Si es indefinida, añade +C.</li><li>Si es definida (Barrow): evalúa la primitiva en el límite superior y réstale su valor en el inferior.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — ∫3x² dx</summary><div class="answer"><div class="step"><b>1</b><span>Las constantes multiplicativas salen fuera: 3 · ∫x² dx.</span></div><div class="step"><b>2</b><span>Regla de la potencia: x³/3.</span></div><div class="step"><b>3</b><span>3 · (x³/3) = x³. Añade la constante.</span></div><div class="step final"><b>✓</b><span>Respuesta: x³ + C.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — ∫₀² x dx</summary><div class="answer"><div class="step"><b>1</b><span>Primitiva: x²/2.</span></div><div class="step"><b>2</b><span>Barrow: evalúa arriba menos abajo: (2²/2) − (0²/2).</span></div><div class="step final"><b>✓</b><span>Respuesta: 2 − 0 = 2.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 3 — si v(t)=2t, calcula el desplazamiento entre 0 y 5</summary><div class="answer"><div class="step"><b>1</b><span>El desplazamiento es la integral de la velocidad: ∫₀⁵ 2t dt.</span></div><div class="step"><b>2</b><span>Primitiva: t² (comprueba: su derivada es 2t ✓).</span></div><div class="step"><b>3</b><span>Barrow: t²|₀⁵ = 5² − 0².</span></div><div class="step final"><b>✓</b><span>Respuesta: 25.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>4.4 Series</h3>
+<p>Una <b>serie</b> es la suma de los términos de una sucesión. La pregunta del millón es si esa suma infinita converge (da un número finito) o diverge (crece sin control).</p>
+<p>Las <b>series geométricas</b> (cada término es el anterior multiplicado por r) se suman con la fórmula a/(1−r) cuando |r| &lt; 1. Y las <b>series de potencias</b>, como la de eˣ, convierten funciones complicadas en polinomios infinitos: son la base de las aproximaciones que usas cada día en Física.</p>
+<div class="formula">eˣ = 1+x+x²/2!+x³/3!+…     ·     geométrica: Σarⁿ = a/(1−r) si |r|&lt;1</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Identifica el tipo: ¿geométrica (cada término = anterior × r)? ¿de potencias?</li><li>Si es geométrica: convergen solo si |r| &lt; 1, y su suma es a/(1−r), donde a es el primer término.</li><li>Si es de potencias: para aproximar cerca de x = 0, corta la serie tras unos pocos términos.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — primeros 4 términos de eˣ</summary><div class="answer"><div class="step"><b>1</b><span>Escribe la serie: eˣ = 1 + x + x²/2! + x³/3! + …</span></div><div class="step"><b>2</b><span>Calcula los factoriales: 2! = 2 y 3! = 6.</span></div><div class="step final"><b>✓</b><span>Respuesta: 1 + x + x²/2 + x³/6.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — ¿converge la serie geométrica Σ(1/2)ⁿ desde n=0?</summary><div class="answer"><div class="step"><b>1</b><span>Identifica: primer término a = (1/2)⁰ = 1 y razón r = 1/2.</span></div><div class="step"><b>2</b><span>|r| = 1/2 &lt; 1 → sí converge.</span></div><div class="step"><b>3</b><span>Suma: a/(1−r) = 1/(1−1/2) = 1/(1/2).</span></div><div class="step final"><b>✓</b><span>Respuesta: sí; suma = 2.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">5</div><div class="summaryText"><h2>Álgebra lineal</h2><p>Matrices, espacios vectoriales y autovalores.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>5.1 Matrices y sistemas lineales</h3>
+<p>Una <b>matriz</b> es una tabla de números ordenados en filas y columnas. Sirve para organizar información y, sobre todo, para representar <b>transformaciones lineales</b> (giros, escalados, proyecciones) y <b>sistemas de ecuaciones</b> de forma compacta.</p>
+<p>El <b>determinante</b> mide cómo la transformación escala las áreas (en 2×2). Si vale cero, la transformación «aplasta» el plano sobre una recta y el sistema asociado no tiene solución única. Por eso es tan importante saber calcularlo rápido.</p>
+<div class="formula">AX=b     ·     det([[a,b],[c,d]]) = ad − bc</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Determinante 2×2: multiplica la diagonal principal (a·d) y réstale el producto de la otra diagonal (b·c).</li><li>Sistemas pequeños: usa reducción — suma las ecuaciones para que una incógnita desaparezca.</li><li>Despeja la incógnita restante y vuelve atrás para hallar la otra.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — resuelve x+y=5, x−y=1</summary><div class="answer"><div class="step"><b>1</b><span>Reducción: suma las dos ecuaciones: (x+y) + (x−y) = 5 + 1 → 2x = 6.</span></div><div class="step"><b>2</b><span>Despeja: x = 3.</span></div><div class="step"><b>3</b><span>Vuelve a la primera ecuación: 3 + y = 5 → y = 2.</span></div><div class="step"><b>4</b><span>Comprobación: 3 − 2 = 1 ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: x = 3, y = 2.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — determinante de [[2,1],[3,4]]</summary><div class="answer"><div class="step"><b>1</b><span>Diagonal principal: 2 · 4 = 8.</span></div><div class="step"><b>2</b><span>Otra diagonal: 1 · 3 = 3.</span></div><div class="step"><b>3</b><span>Resta: 8 − 3.</span></div><div class="step final"><b>✓</b><span>Respuesta: 5.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>5.2 Espacios vectoriales, bases y dimensión</h3>
+<p>Un <b>espacio vectorial</b> es un conjunto donde puedes sumar elementos y multiplicarlos por escalares sin salirte de él: vectores del plano, polinomios, funciones… Lo importante no son los objetos, sino que las operaciones se comporten bien.</p>
+<p>Un conjunto es <b>linealmente independiente</b> si ningún vector puede escribirse como combinación de los demás. Una <b>base</b> es un conjunto independiente que genera todo el espacio, y su número de vectores es la <b>dimensión</b>: R² necesita 2, R³ necesita 3.</p>
+<div class="howto"><b>Cómo se hace</b><ol><li>¿Independientes? En R² basta comprobar si uno es múltiplo del otro.</li><li>¿Base? Debe ser independiente y tener tantos vectores como la dimensión del espacio.</li><li>Coordenadas de un vector en una base: son los coeficientes que lo reconstruyen como combinación de la base.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — ¿son independientes (1,0) y (0,1)?</summary><div class="answer"><div class="step"><b>1</b><span>Pregunta clave: ¿existe algún escalar k con (1,0) = k·(0,1) = (0,k)?</span></div><div class="step"><b>2</b><span>No: la primera componente exigiría 1 = 0. Ninguno es múltiplo del otro.</span></div><div class="step"><b>3</b><span>Son 2 vectores independientes en R² (dimensión 2) → forman base.</span></div><div class="step final"><b>✓</b><span>Respuesta: sí; de hecho forman la base canónica de R².</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — expresa (3,5) en la base canónica</summary><div class="answer"><div class="step"><b>1</b><span>Las coordenadas son los coeficientes ante cada vector de la base.</span></div><div class="step"><b>2</b><span>Comprueba: 3·(1,0) + 5·(0,1) = (3,0) + (0,5) = (3,5) ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: (3,5) = 3(1,0) + 5(0,1), coordenadas (3, 5).</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>5.3 Autovalores y autovectores</h3>
+<p>Casi todos los vectores cambian de dirección cuando se les aplica una transformación. Pero unos pocos especiales, los <b>autovectores</b>, salen solo estirados o encogidos: el factor de escala es su <b>autovalor</b> λ.</p>
+<p>Aparecen por todas partes: ejes principales de rotación de un sólido, modos normales de vibración, el algoritmo PageRank de Google y los estados estacionarios de la mecánica cuántica.</p>
+<div class="formula">Av=λv</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Reescribe Av = λv como (A − λI)v = 0.</li><li>Los autovalores son los λ que hacen det(A − λI) = 0 (ecuación característica).</li><li>Para cada λ encontrado, resuelve el sistema y obtén sus autovectores.</li></ol></div>
+<details class="exercise"><summary>Ejercicio — para A=[[2,0],[0,3]], ¿cuáles son sus autovalores?</summary><div class="answer"><div class="step"><b>1</b><span>La matriz es diagonal: los autovalores de una matriz diagonal son los elementos de la diagonal.</span></div><div class="step"><b>2</b><span>Entonces λ₁ = 2 y λ₂ = 3.</span></div><div class="step"><b>3</b><span>Comprobación: A(1,0) = (2,0) = 2·(1,0) ✓ y A(0,1) = (0,3) = 3·(0,1) ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: 2 y 3, con autovectores (1,0) y (0,1).</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">6</div><div class="summaryText"><h2>Matemáticas para Física</h2><p>El salto hacia las herramientas que aparecen en la universidad.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>6.1 Cálculo multivariable</h3>
+<p>Cuando una magnitud depende de varias variables —la temperatura de una sala T(x,y,z), por ejemplo— ya no existe «la» derivada, sino una por variable: las <b>derivadas parciales</b>.</p>
+<p>La regla es cómoda: para derivar respecto a una variable, trata las demás como si fueran números constantes. El <b>gradiente</b> ∇f junta todas las parciales en un vector que señala la dirección de máximo crecimiento: es la herramienta clave en potenciales y campos.</p>
+<div class="formula">∇f = (∂f/∂x, ∂f/∂y, ∂f/∂z)</div>
+<div class="howto"><b>Cómo se hace</b><ol><li>Para calcular ∂f/∂x: trata y, z… como constantes y deriva respecto a x con las reglas de siempre.</li><li>Repite el proceso para cada variable.</li><li>Construye el gradiente ordenando las parciales en un vector.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — f=x²y+z, calcula ∂f/∂x</summary><div class="answer"><div class="step"><b>1</b><span>Fija y y z como constantes.</span></div><div class="step"><b>2</b><span>Término x²y: como y es constante, deriva x² → 2x·y.</span></div><div class="step"><b>3</b><span>Término z: es constante → deriva a 0.</span></div><div class="step final"><b>✓</b><span>Respuesta: ∂f/∂x = 2xy.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — f=x²+y², calcula ∇f</summary><div class="answer"><div class="step"><b>1</b><span>∂f/∂x: deriva x² → 2x; y² es constante → 0.</span></div><div class="step"><b>2</b><span>∂f/∂y: x² es constante → 0; y² → 2y.</span></div><div class="step"><b>3</b><span>Ordena en vector.</span></div><div class="step final"><b>✓</b><span>Respuesta: ∇f = (2x, 2y) — apunta «hacia fuera» del origen.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>6.2 Divergencia, rotacional e integrales múltiples</h3>
+<p>Un <b>campo vectorial</b> asigna un vector a cada punto del espacio: el viento en cada lugar, el campo eléctrico alrededor de una carga…</p>
+<p>La <b>divergencia</b> mide cuánto «nace» o «muere» el campo en un punto (fuentes y sumideros), y el <b>rotacional</b>, cuánto hace girar. Los teoremas de Gauss y Stokes —generalizaciones de la regla de Barrow— conectan lo que ocurre dentro de una región con lo que ocurre en su frontera.</p>
+<div class="formula">∇·F = ∂Fₓ/∂x + ∂Fᵧ/∂y + ∂F_z/∂z</div>
+<div class="howto"><b>Cómo se hace — divergencia</b><ol><li>Identifica las componentes del campo: F = (Fₓ, Fᵧ, Fz).</li><li>Deriva cada componente respecto a «su» variable: ∂Fₓ/∂x, ∂Fᵧ/∂y, ∂Fz/∂z.</li><li>Suma los tres resultados: eso es ∇·F.</li></ol></div>
+<details class="exercise"><summary>Ejercicio — F=(x,y,z). Calcula ∇·F</summary><div class="answer"><div class="step"><b>1</b><span>∂Fₓ/∂x = ∂x/∂x = 1.</span></div><div class="step"><b>2</b><span>Igual para las demás: ∂y/∂y = 1 y ∂z/∂z = 1.</span></div><div class="step"><b>3</b><span>Suma: 1 + 1 + 1.</span></div><div class="step final"><b>✓</b><span>Respuesta: ∇·F = 3 — el campo se expande uniformemente desde el origen.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>6.3 Ecuaciones diferenciales</h3>
+<p>Una <b>ecuación diferencial</b> relaciona una función con sus derivadas: en vez de preguntar «qué número es x», pregunta «qué función es y(x)». Describen la naturaleza: movimiento, osciladores, circuitos, difusión del calor.</p>
+<p>Como al integrar aparecen constantes, las soluciones son <b>familias</b> de funciones. Una <b>condición inicial</b> (un dato concreto como y(0) = 3) fija la constante y elige la solución exacta del problema.</p>
+<div class="formula">dy/dx = ky → y = Ceᵏˣ</div>
+<div class="howto"><b>Cómo se hace — separación de variables</b><ol><li>Pasa todo lo que tenga y a un lado junto al dy, y todo lo de x al otro lado junto al dx.</li><li>Integra ambos lados.</li><li>Despeja y (suele salir una exponencial).</li><li>Aplica la condición inicial para determinar la constante.</li></ol></div>
+<details class="exercise"><summary>Ejercicio — resuelve dy/dx=2y</summary><div class="answer"><div class="step"><b>1</b><span>Separa variables: dy/y = 2 dx.</span></div><div class="step"><b>2</b><span>Integra: ln|y| = 2x + C₁.</span></div><div class="step"><b>3</b><span>Despeja exponenciando: |y| = e²ˣ⁺C¹ = Ce²ˣ → familia y = Ce²ˣ.</span></div><div class="step"><b>4</b><span>Comprobación: y' = 2Ce²ˣ = 2y ✓.</span></div><div class="step final"><b>✓</b><span>Respuesta: y = Ce²ˣ.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio — ¿qué representa una condición inicial?</summary><div class="answer"><div class="step"><b>1</b><span>Las soluciones generales traen una constante libre C: hay infinitas curvas solución.</span></div><div class="step"><b>2</b><span>Una condición inicial es un dato puntual, como y(0) = 3, que fija esa constante y elige una única solución.</span></div><div class="step"><b>3</b><span>Ejemplo: si y = Ce²ˣ e y(0) = 3, entonces 3 = C·e⁰ = C, y la solución es y = 3e²ˣ.</span></div><div class="step final"><b>✓</b><span>Respuesta: un dato que convierte la familia de soluciones en una solución concreta.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>6.4 Números complejos</h3>
+<p>Los complejos añaden la <b>unidad imaginaria</b> i, definida por i² = −1. Así, z = a + bi tiene parte real a y parte imaginaria b: un punto del plano.</p>
+<p>Se suman y multiplican como polinomios (recordando cambiar cada i² por −1); el <b>módulo</b> es la distancia al origen; y la joya es la <b>fórmula de Euler</b>: convierte las oscilaciones en giros, y es la herramienta estándar de ondas, corriente alterna y mecánica cuántica.</p>
+<div class="formula">z=a+bi · |z|=√(a²+b²) · eⁱθ=cosθ+i·sinθ</div>
+<div class="howto"><b>Cómo se hace — operar con complejos</b><ol><li>Suma: suma partes reales entre sí y partes imaginarias entre sí.</li><li>Multiplicación: doble distributiva, como si fueran binomios.</li><li>Cada vez que aparezca i², sustitúyelo por −1.</li><li>Ordena el resultado en la forma a + bi.</li></ol></div>
+<details class="exercise"><summary>Ejercicio 1 — (2+3i)+(4−i)</summary><div class="answer"><div class="step"><b>1</b><span>Partes reales: 2 + 4 = 6.</span></div><div class="step"><b>2</b><span>Partes imaginarias: 3i − i = 2i.</span></div><div class="step final"><b>✓</b><span>Respuesta: 6 + 2i.</span></div></div></details>
+<details class="exercise"><summary>Ejercicio 2 — i²</summary><div class="answer"><div class="step"><b>1</b><span>Es la propia definición de la unidad imaginaria: la raíz «imposible» de −1.</span></div><div class="step final"><b>✓</b><span>Respuesta: i² = −1.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>6.5 Fourier y herramientas avanzadas</h3>
+<p>Fourier demostró que casi cualquier señal periódica puede escribirse como una <b>suma de senos y cosenos</b> de frecuencias múltiplo de una fundamental, cada uno con su peso.</p>
+<p>Ese cambio de punto de vista —del tiempo a la frecuencia— está en el MP3, los ecógrafos, el análisis de vibraciones y la mecánica cuántica. Los siguientes pasos naturales son la <b>transformada de Fourier</b> (señales no periódicas), <b>Laplace</b> (transitorios y control) y los <b>métodos numéricos</b> para resolver lo que no tiene fórmula cerrada.</p>
+<div class="howto"><b>La idea en 3 pasos</b><ol><li>Toma una señal periódica.</li><li>Busca sus componentes sinusoidales (serie de Fourier).</li><li>Los coeficientes dicen «cuánta» frecuencia de cada tipo contiene: ese es su espectro.</li></ol></div>
+<details class="exercise"><summary>Ejercicio — ¿qué idea central tiene Fourier?</summary><div class="answer"><div class="step"><b>1</b><span>Toda señal periódica se puede descomponer en ondas sinusoidales simples.</span></div><div class="step"><b>2</b><span>Analizar «cuánto hay» de cada frecuencia (el espectro) suele ser más útil que mirar la señal en el tiempo.</span></div><div class="step final"><b>✓</b><span>Respuesta: descomponer una señal en componentes sinusoidales de distintas frecuencias.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+
+<details class="module">
+<summary><div class="num">7</div><div class="summaryText"><h2>Preparación universitaria</h2><p>Rigor, demostraciones y hábitos matemáticos para empezar Física con una base sólida.</p></div></summary>
+<div class="moduleBody">
+<div class="topic"><h3>7.1 Lógica y demostraciones</h3>
+<p>Una <b>proposición</b> es un enunciado que es verdadero o falso; una <b>demostración</b> es una cadena de deducciones que lo establece con certeza total, sin apelar a ejemplos ni a la intuición.</p>
+<p>Las técnicas básicas son cuatro: <b>directa</b> (de las hipótesis a la conclusión, paso a paso), <b>contraposición</b> (demostrar que si no se cumple la conclusión, tampoco se cumplía la hipótesis), <b>reducción al absurdo</b> (suponer lo contrario y llegar a una contradicción) e <b>inducción</b> (caso base + paso de n a n+1: un dominó infinito).</p>
+<div class="howto"><b>Cómo se hace</b><ol><li>Escribe con claridad la hipótesis (lo que sabes) y la tesis (lo que quieres probar).</li><li>Elige una técnica; empieza siempre por la directa.</li><li>Encadena deducciones justificadas, una por línea.</li><li>Cierra escribiendo exactamente lo que querías demostrar.</li></ol></div>
+<details class="exercise"><summary>Ejercicio — demuestra que la suma de dos números pares es par</summary><div class="answer"><div class="step"><b>1</b><span>Hipótesis: a y b son pares. Tesis: a + b es par. Usamos demostración directa.</span></div><div class="step"><b>2</b><span>Escribe qué significa «par»: a = 2m y b = 2n para ciertos enteros m y n.</span></div><div class="step"><b>3</b><span>Suma y saca factor común: a + b = 2m + 2n = 2(m + n).</span></div><div class="step"><b>4</b><span>m + n es un entero, así que a + b es el doble de un entero.</span></div><div class="step final"><b>✓</b><span>Por tanto, a + b es par — que es lo que queríamos demostrar.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>7.2 Análisis y rigor</h3>
+<p>El análisis pone el cálculo sobre terreno firme: qué son exactamente los números reales, qué significa «acercarse» o «sumar infinitos términos» sin trampas. Es el paso de <i>saber usar</i> las herramientas a <i>entender por qué funcionan</i>.</p>
+<p>Las definiciones con ε (épsilon) y δ (delta) parecen intimidantes, pero solo capturan con precisión la intuición: <i>«tan cerca como queramos, a partir de cierto punto»</i>. Primero construye las imágenes mentales; el formalismo llegará después mucho más fácil. No necesitas dominarlo todo de golpe.</p>
+<div class="howto"><b>Cómo se estudia</b><ol><li>Primero la intuición geométrica: dibuja qué significa converger, ser continuo, acotar.</li><li>Después la definición formal palabra por palabra, traduciendo cada símbolo a esa imagen.</li><li>Por último, ejemplos y contraejemplos para testear los límites de la definición.</li></ol></div>
+<details class="exercise"><summary>Ejercicio — ¿qué significa intuitivamente que una sucesión converja a L?</summary><div class="answer"><div class="step"><b>1</b><span>Elige cualquier margen de error, por pequeño que sea (eso es el ε).</span></div><div class="step"><b>2</b><span>Siempre puedes encontrar un punto de la sucesión a partir del cual todos los términos quedan dentro de ese margen alrededor de L.</span></div><div class="step"><b>3</b><span>En símbolos: para todo ε &gt; 0 existe un N tal que si n ≥ N, entonces |aₙ − L| &lt; ε.</span></div><div class="step final"><b>✓</b><span>Respuesta: que sus términos pueden hacerse tan cercanos a L como queramos, a partir de cierto punto.</span></div></div></details>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+
+<div class="topic"><h3>7.3 Método de estudio para Física</h3><p>Para cada tema: ① entiende la idea, ② reproduce ejemplos sin mirar, ③ resuelve ejercicios fáciles, ④ resuelve ejercicios difíciles, ⑤ explica el concepto con tus palabras, ⑥ vuelve a los errores una semana después.</p>
+<div class="example"><b>Regla de oro:</b> si puedes seguir una solución pero no puedes resolver un problema nuevo, todavía no dominas el tema.</div>
+<label class="check"><input type="checkbox" data-topic> Marcar tema como dominado</label></div>
+</div></details>
+</div>
+
+
+<section id="practiceHub" class="practice-hub">
+  <div class="practice-head">
+    <span class="badge">🧪 MODO PRÁCTICA</span>
+    <h2>Tu sala de ejercicios</h2>
+    <p>Al terminar cada sección, resuelve los problemas sin mirar la solución. Escribe tu respuesta, compruébala y registra si lo has conseguido.</p>
+  </div>
+  <div class="practice-grid">
+    <div class="practice-card">
+      <span>🟢</span><b>Entrenamiento</b><small>Ejercicios básicos para fijar conceptos.</small>
+      <button class="btn-primary" onclick="openPractice('easy')">Practicar</button>
+    </div>
+    <div class="practice-card">
+      <span>🟡</span><b>Dominio</b><small>Problemas que mezclan varias ideas.</small>
+      <button class="btn-primary" onclick="openPractice('medium')">Practicar</button>
+    </div>
+    <div class="practice-card">
+      <span>🔴</span><b>Desafío</b><small>Problemas largos y razonamiento.</small>
+      <button class="btn-primary" onclick="openPractice('hard')">Practicar</button>
+    </div>
+  </div>
+  <div class="exam-box">
+    <h3>🎓 Examen de sección</h3>
+    <p>Cuando creas que dominas un bloque, haz una prueba sin consultar apuntes. La puntuación es orientativa: lo importante es detectar qué debes repasar.</p>
+    <button class="btn-primary" onclick="startExam()">Generar examen</button>
+    <div id="examResult"></div>
+  </div>
+</section>
+
+<div id="practiceModal" class="modal hidden">
+  <div class="modal-card">
+    <button class="close" onclick="closePractice()">✕</button>
+    <span id="practiceLevel" class="badge"></span>
+    <h2 id="practiceTitle"></h2>
+    <div id="practiceQuestion"></div>
+    <textarea id="practiceAnswer" placeholder="Escribe aquí tu procedimiento y respuesta..."></textarea>
+    <div class="modal-actions">
+      <button onclick="showPracticeSolution()">Ver solución</button>
+      <button class="btn-primary" onclick="nextPractice()">Siguiente ejercicio →</button>
+    </div>
+    <div id="practiceSolution" class="solution hidden"></div>
+  </div>
+</div>
+
+<button id="toTop" class="to-top" aria-label="Volver arriba" title="Volver arriba">↑</button>
+
+<footer>
+  <p>MathForge · Tu progreso se guarda automáticamente en este navegador.</p>
+  <p>Esta primera versión es una base sólida. Puedes ampliarla con más teoría, cientos de ejercicios, dificultad progresiva, exámenes y soluciones paso a paso.</p>
+</footer>
+</main>
+
+<script>
+const checks=[...document.querySelectorAll('[data-topic]')];
+const key='mathforge-progress-v1';
+function load(){const saved=JSON.parse(localStorage.getItem(key)||'[]');checks.forEach((c,i)=>c.checked=!!saved[i]);update()}
+function update(){const done=checks.filter(c=>c.checked).length;const pct=checks.length?Math.round(done/checks.length*100):0;document.querySelector('#done').textContent=pct+'%';document.querySelector('#count').textContent=done+'/'+checks.length;localStorage.setItem(key,JSON.stringify(checks.map(c=>c.checked)))}
+checks.forEach(c=>c.addEventListener('change',update));
+document.querySelector('#search').addEventListener('input',e=>{
+ const q=e.target.value.toLowerCase().trim();
+ document.querySelectorAll('.topic').forEach(t=>t.classList.toggle('hidden',q && !t.innerText.toLowerCase().includes(q)));
+ document.querySelectorAll('.module').forEach(m=>{const any=[...m.querySelectorAll('.topic')].some(t=>!t.classList.contains('hidden')); if(q&&any)m.open=true; m.classList.toggle('hidden',q&&!any)});
+});
+function expandAll(){document.querySelectorAll('.module').forEach(x=>x.open=true)}
+function collapseAll(){document.querySelectorAll('.module').forEach(x=>x.open=false)}
+function resetProgress(){if(confirm('¿Reiniciar todo el progreso?')){checks.forEach(c=>c.checked=false);update()}}
+load();
+
+const practiceSets={
+easy:[
+["Fundamentos","Simplifica: 3/4 + 5/8.", "Paso 1: busca un denominador común. mcm(4, 8) = 8, así que convierte 3/4 = 6/8 (multiplica arriba y abajo por 2).\nPaso 2: suma los numeradores conservando el denominador: 6/8 + 5/8.\nRespuesta: 11/8."],
+["Álgebra","Resuelve: 3x+7=25.", "Paso 1: resta 7 en ambos lados de la balanza: 3x = 25 − 7 = 18.\nPaso 2: divide entre el coeficiente de x: x = 18/3.\nComprobación: 3·6 + 7 = 25 ✓\nRespuesta: x = 6."],
+["Funciones","Si f(x)=x²−2x, calcula f(5).", "Paso 1: sustituye cada x por 5: f(5) = 5² − 2·5.\nPaso 2: calcula cada parte: 25 − 10.\nRespuesta: 15."],
+["Trigonometría","Un triángulo rectángulo tiene hipotenusa 10 y ángulo 30°. ¿Cuánto mide el cateto opuesto?", "Paso 1: la razón que une cateto opuesto e hipotenusa es el seno: sin(30°) = opuesto/10.\nPaso 2: usa el valor notable sin(30°) = 1/2: opuesto = 10 · (1/2).\nRespuesta: 5."],
+["Vectores","Calcula el módulo de v=(6,8).", "Paso 1: eleva cada componente al cuadrado: 6² = 36 y 8² = 64.\nPaso 2: suma y haz la raíz: √(36 + 64) = √100.\nRespuesta: 10."],
+["Cálculo","Deriva f(x)=5x³−2x.", "Paso 1: deriva término a término con la regla de la potencia (baja el exponente multiplicando y réstale 1).\nPaso 2: 5x³ → 15x².\nPaso 3: −2x → −2 (x¹ pasa a x⁰ = 1).\nRespuesta: f'(x) = 15x² − 2."]
+],
+medium:[
+["Álgebra","Resuelve x²−7x+12=0.", "Paso 1: busca dos números que multipliquen +12 y sumen −7: son −3 y −4.\nPaso 2: factoriza: (x−3)(x−4) = 0.\nPaso 3: si un producto es cero, algún factor es cero: x−3 = 0 o x−4 = 0.\nSoluciones: x = 3 y x = 4."],
+["Funciones","Determina el dominio de f(x)=√(2x−6).", "Paso 1: la raíz cuadrada exige que el radicando sea mayor o igual que cero: 2x − 6 ≥ 0.\nPaso 2: despeja: 2x ≥ 6 → x ≥ 3.\nDominio: [3, ∞)."],
+["Geometría","Encuentra la ecuación de la recta que pasa por (2,5) y (4,9).", "Paso 1: calcula la pendiente: m = (9−5)/(4−2) = 4/2 = 2.\nPaso 2: aplica punto-pendiente con (2,5): y − 5 = 2(x − 2).\nPaso 3: desarrolla y despeja: y = 2x − 4 + 5.\nEcuación: y = 2x + 1."],
+["Derivadas","Un objeto tiene posición x(t)=t³−6t²+9t. Encuentra su velocidad.", "Paso 1: la velocidad es la derivada de la posición: v(t) = x'(t).\nPaso 2: deriva término a término: t³ → 3t².\nPaso 3: −6t² → −12t.\nPaso 4: 9t → 9.\nRespuesta: v(t) = 3t² − 12t + 9."],
+["Integrales","Calcula ∫₁³ 2x dx.", "Paso 1: halla la primitiva: ∫2x dx = x² (comprueba: derivada de x² es 2x ✓).\nPaso 2: aplica Barrow: [x²]₁³ = 3² − 1².\nRespuesta: 9 − 1 = 8."],
+["Álgebra lineal","Calcula el determinante de [[3,2],[5,4]].", "Paso 1: en una matriz 2×2, el determinante es (producto de la diagonal principal) − (producto de la otra).\nPaso 2: 3·4 − 2·5 = 12 − 10.\nRespuesta: 2."]
+],
+hard:[
+["Cálculo","Calcula lim(x→2) (x²−4)/(x−2).", "Paso 1: sustituir directamente da 0/0 — indeterminación.\nPaso 2: factoriza el numerador (diferencia de cuadrados): x²−4 = (x−2)(x+2).\nPaso 3: cancela el factor (x−2) de arriba y abajo: queda x + 2.\nPaso 4: ahora sustituye x = 2: 2 + 2.\nLímite = 4."],
+["Optimización","Un rectángulo tiene perímetro 20. ¿Qué dimensiones maximizan su área?", "Paso 1: relaciona las variables: 2x + 2y = 20 → x + y = 10 → y = 10 − x.\nPaso 2: escribe el área con una sola variable: A(x) = x(10−x) = 10x − x².\nPaso 3: busca el máximo derivando: A'(x) = 10 − 2x = 0 → x = 5. (Es máximo porque A'' = −2 < 0.)\nPaso 4: entonces y = 10 − 5 = 5.\nDimensiones: 5 × 5 (un cuadrado); área máxima = 25."],
+["Física + derivadas","x(t)=t⁴−4t³+6t². Encuentra cuándo v(t)=0.", "Paso 1: deriva la posición para obtener la velocidad: v(t) = 4t³ − 12t² + 12t.\nPaso 2: factoriza sacando 4t: v = 4t(t² − 3t + 3) = 0 → primera solución: t = 0.\nPaso 3: estudia el segundo factor: su discriminante es (−3)² − 4·1·3 = 9 − 12 = −3, negativo → no da más soluciones reales.\nRespuesta: v(t) = 0 únicamente en t = 0."],
+["Multivariable","Para f(x,y)=x²y+3y², calcula el gradiente.", "Paso 1: ∂f/∂x tratando y como constante: x²y → 2xy; 3y² → 0.\nPaso 2: ∂f/∂y tratando x como constante: x²y → x²; 3y² → 6y.\nRespuesta: ∇f = (2xy, x² + 6y)."],
+["Ecuaciones diferenciales","Resuelve dy/dx=3y con y(0)=2.", "Paso 1: separa variables: dy/y = 3 dx.\nPaso 2: integra ambos lados: ln|y| = 3x + C₁.\nPaso 3: despeja: y = Ce³ˣ (solución general).\nPaso 4: aplica la condición inicial: y(0) = C·e⁰ = C = 2.\nSolución: y = 2e³ˣ."],
+["Complejos","Calcula (2+3i)(2−3i).", "Paso 1: reconoce el patrón (a+b)(a−b) = a² − b², con a = 2 y b = 3i.\nPaso 2: calcula (3i)² = 9·i² = 9·(−1) = −9.\nPaso 3: entonces 4 − (−9) = 4 + 9.\nRespuesta: 13. (Multiplicar un complejo por su conjugado siempre da un número real.)"]
+]
+};
+let practiceMode='easy',practiceIndex=0;
+function openPractice(level){
+ practiceMode=level;practiceIndex=0;document.getElementById('practiceModal').classList.remove('hidden');renderPractice();
+}
+function closePractice(){document.getElementById('practiceModal').classList.add('hidden')}
+function renderPractice(){
+ const q=practiceSets[practiceMode][practiceIndex%practiceSets[practiceMode].length];
+ const names={easy:'🟢 Entrenamiento',medium:'🟡 Dominio',hard:'🔴 Desafío'};
+ const total=practiceSets[practiceMode].length;
+ const lvlBadge=document.getElementById('practiceLevel');
+ lvlBadge.textContent=names[practiceMode]+' · '+(practiceIndex%total+1)+'/'+total;
+ lvlBadge.className='badge lvl-'+practiceMode;
+ document.getElementById('practiceTitle').textContent=q[0];
+ document.getElementById('practiceQuestion').textContent=q[1];
+ document.getElementById('practiceAnswer').value='';
+ document.getElementById('practiceSolution').classList.add('hidden');
+ document.getElementById('practiceSolution').textContent=q[2];
+}
+function showPracticeSolution(){document.getElementById('practiceSolution').classList.remove('hidden')}
+function nextPractice(){practiceIndex++;renderPractice()}
+function startExam(){
+ const all=[...practiceSets.easy,...practiceSets.medium,...practiceSets.hard].sort(()=>Math.random()-.5).slice(0,5);
+ const result=document.getElementById('examResult');
+ result.innerHTML='<div style="margin-top:16px">'+all.map((q,i)=>`<details class="exercise"><summary>${i+1}. ${q[1]}</summary><div class="answer">${q[2]}</div></details>`).join('')+'</div>';
+}
+
+/* =========================================================
+   MEJORAS DE INTERFAZ (v2)
+   Progreso visual, animaciones de entrada, atajos de modal.
+   ========================================================= */
+(() => {
+"use strict";
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- barra de progreso del hero + progreso por módulo ---------- */
+const progFill = document.getElementById("progFill");
+const progText = document.getElementById("progText");
+const modProgs = [];
+
+document.querySelectorAll(".module").forEach((m) => {
+  const summary = m.querySelector("summary");
+  const total = m.querySelectorAll("[data-topic]").length;
+  const el = document.createElement("span");
+  el.className = "mod-prog";
+  el.innerHTML = '<span class="track"><i></i></span><b>0/' + total + "</b>";
+  summary.appendChild(el);
+  modProgs.push({ m, total, bar: el.querySelector("i"), label: el.querySelector("b") });
+});
+
+function refreshProgress() {
+  const done = checks.filter((c) => c.checked).length;
+  const pct = checks.length ? Math.round((done / checks.length) * 100) : 0;
+  if (progFill) progFill.style.width = pct + "%";
+  if (progText) progText.textContent = pct + "%";
+  modProgs.forEach((o) => {
+    const d = [...o.m.querySelectorAll("[data-topic]")].filter((c) => c.checked).length;
+    o.bar.style.width = (o.total ? (d / o.total) * 100 : 0) + "%";
+    o.label.textContent = d + "/" + o.total;
+    o.label.classList.toggle("full", o.total > 0 && d === o.total);
+    o.m.classList.toggle("complete", o.total > 0 && d === o.total);
+  });
+}
+checks.forEach((c) => c.addEventListener("change", refreshProgress));
+refreshProgress();
+
+/* ---------- animación de entrada al hacer scroll ---------- */
+if (!REDUCED && "IntersectionObserver" in window) {
+  const SELECTOR = [".stat", ".module", ".topic", ".practice-head", ".practice-card", ".exam-box", "footer p"].join(",");
+  const els = [...document.querySelectorAll(SELECTOR)];
+  const perParent = new Map();
+  els.forEach((el) => {
+    el.classList.add("reveal");
+    const p = el.parentElement;
+    const i = perParent.get(p) || 0;
+    el.style.setProperty("--d", Math.min(i, 8) * 55 + "ms");
+    perParent.set(p, i + 1);
+  });
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: "0px 0px -5% 0px" });
+  els.forEach((el) => io.observe(el));
+}
+
+/* ---------- modal: cerrar con Escape o clicando fuera ---------- */
+const modal = document.getElementById("practiceModal");
+modal?.addEventListener("click", (e) => {
+  if (e.target === modal) closePractice();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modal && !modal.classList.contains("hidden")) closePractice();
+});
+
+/* ---------- toolbar con realce al hacer scroll + volver arriba ---------- */
+const toolbar = document.querySelector(".toolbar");
+const toTop = document.getElementById("toTop");
+function onScroll() {
+  const y = window.scrollY || document.documentElement.scrollTop || 0;
+  toolbar?.classList.toggle("scrolled", y > 10);
+  toTop?.classList.toggle("show", y > 600);
+}
+document.addEventListener("scroll", onScroll, { passive: true });
+onScroll();
+toTop?.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
+});
+
+/* ---------- acordeón animado de módulos ---------- */
+document.querySelectorAll("details.module").forEach((details) => {
+  const summary = details.querySelector("summary");
+  const body = details.querySelector(".moduleBody");
+  if (!summary || !body || REDUCED) return;
+  summary.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (details.dataset.animating === "1") return;
+    details.dataset.animating = "1";
+    body.style.overflow = "hidden";
+    if (details.open) {
+      const anim = body.animate(
+        [{ height: body.offsetHeight + "px", opacity: 1 }, { height: "0px", opacity: 0 }],
+        { duration: 260, easing: "ease-in-out" }
+      );
+      anim.onfinish = () => {
+        details.open = false;
+        body.style.overflow = "";
+        details.dataset.animating = "0";
+      };
+    } else {
+      details.open = true;
+      const target = body.offsetHeight;
+      const anim = body.animate(
+        [{ height: "0px" }, { height: target + "px" }],
+        { duration: 320, easing: "cubic-bezier(.4,0,.2,1)" }
+      );
+      anim.onfinish = () => {
+        body.style.overflow = "";
+        details.dataset.animating = "0";
+      };
+    }
+  });
+});
+
+/* ---------- conteo animado de las estadísticas del hero ---------- */
+if (!REDUCED) {
+  const doneEl = document.getElementById("done");
+  const countEl = document.getElementById("count");
+  const doneNow = checks.filter((c) => c.checked).length;
+  const pctNow = checks.length ? Math.round((doneNow / checks.length) * 100) : 0;
+  const DURATION = 900;
+  const t0 = performance.now();
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  function stepCount(now) {
+    const t = Math.min(1, (now - t0) / DURATION);
+    const e = easeOut(t);
+    if (doneEl) doneEl.textContent = Math.round(pctNow * e) + "%";
+    if (countEl) countEl.textContent = Math.round(doneNow * e) + "/" + checks.length;
+    if (t < 1) requestAnimationFrame(stepCount);
+  }
+  requestAnimationFrame(stepCount);
+}
+
+/* ---------- brillo que sigue al cursor (solo punteros finos) ---------- */
+if (!REDUCED && window.matchMedia("(pointer:fine)").matches) {
+  document.querySelectorAll(".stat, .practice-card, .topic").forEach((card) => {
+    card.addEventListener("pointermove", (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", e.clientX - r.left + "px");
+      card.style.setProperty("--my", e.clientY - r.top + "px");
+    });
+  });
+}
+
+/* ---------- parallax de los símbolos del hero ---------- */
+const orbit = document.querySelector(".math-orbit");
+const hero = document.querySelector(".hero");
+if (!REDUCED && orbit && hero && window.matchMedia("(pointer:fine)").matches) {
+  hero.addEventListener("pointermove", (e) => {
+    const r = hero.getBoundingClientRect();
+    const dx = (e.clientX - r.left) / r.width - 0.5;
+    const dy = (e.clientY - r.top) / r.height - 0.5;
+    orbit.style.transform = "translate(" + dx * -16 + "px," + dy * -12 + "px)";
+  });
+  hero.addEventListener("pointerleave", () => { orbit.style.transform = ""; });
+}
+
+/* ---------- barra de progreso de lectura ---------- */
+const scrollProgress = document.getElementById("scrollProgress");
+function onScrollProgress() {
+  if (!scrollProgress) return;
+  const doc = document.documentElement;
+  const max = doc.scrollHeight - doc.clientHeight;
+  scrollProgress.style.width = (max > 0 ? (doc.scrollTop / max) * 100 : 0) + "%";
+}
+document.addEventListener("scroll", onScrollProgress, { passive: true });
+onScrollProgress();
+
+/* ---------- modal: entrada con foco + salida suave ---------- */
+const _openPractice = openPractice;
+window.openPractice = function (level) {
+  _openPractice(level);
+  window.setTimeout(() => document.getElementById("practiceAnswer")?.focus(), 140);
+};
+const _closePractice = closePractice;
+window.closePractice = function () {
+  if (REDUCED || !modal) { _closePractice(); return; }
+  modal.classList.add("closing");
+  window.setTimeout(() => {
+    modal.classList.remove("closing");
+    _closePractice();
+  }, 170);
+};
+
+/* =========================================================
+   DETALLITOS (ronda 3): sonidos, confeti, toasts y tema
+   ========================================================= */
+
+/* ---------- sonidos sutiles (WebAudio, sin archivos) ---------- */
+let soundOn = true;
+try { soundOn = (localStorage.getItem("mathforge-sound") ?? "1") === "1"; } catch (e) {}
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, when, dur, vol, type) {
+  if (!soundOn) return;
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type || "sine";
+  osc.frequency.value = freq;
+  const t = ctx.currentTime + when;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+const playPop = () => { tone(540, 0, 0.09, 0.12); tone(830, 0.06, 0.12, 0.1); };
+const playUnpop = () => { tone(400, 0, 0.08, 0.08); };
+const playTick = () => { tone(340, 0, 0.05, 0.05, "triangle"); };
+const playChime = () => { [523.25, 659.25, 783.99].forEach((f, i) => tone(f, i * 0.09, 0.3, 0.1)); };
+const playFanfare = () => { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, i * 0.1, 0.38, 0.12)); };
+
+/* ---------- confeti (canvas, sin librerías) ---------- */
+function runConfetti(groups) {
+  const W = window.innerWidth, H = window.innerHeight;
+  const canvas = document.createElement("canvas");
+  canvas.className = "confetti-canvas";
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.scale(dpr, dpr);
+  document.body.appendChild(canvas);
+  const COLORS = ["#7c8cff", "#43d9b2", "#ffc857", "#ff6b7a", "#ffffff"];
+  const parts = [];
+  groups.forEach((g) => {
+    for (let i = 0; i < g.count; i++) {
+      parts.push({
+        x: g.x + (Math.random() - 0.5) * 24,
+        y: g.y + (Math.random() - 0.5) * 12,
+        vx: (Math.random() - 0.5) * g.spread,
+        vy: -(Math.random() * g.up) - 2,
+        g: 0.22 + Math.random() * 0.18,
+        s: 4 + Math.random() * 5,
+        c: COLORS[(Math.random() * COLORS.length) | 0],
+        r: Math.random() * Math.PI,
+        vr: (Math.random() - 0.5) * 0.3,
+        life: 1
+      });
+    }
+  });
+  let last = performance.now();
+  (function tick(now) {
+    const dt = Math.min(34, now - last) / 16.7;
+    last = now;
+    ctx.clearRect(0, 0, W, H);
+    let alive = false;
+    parts.forEach((p) => {
+      p.vy += p.g * dt;
+      p.vx *= 0.995;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.r += p.vr * dt;
+      p.life -= 0.009 * dt;
+      if (p.life > 0 && p.y < H + 30) {
+        alive = true;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.62);
+        ctx.restore();
+      }
+    });
+    if (alive) requestAnimationFrame(tick);
+    else canvas.remove();
+  })(performance.now());
+}
+function burstAt(el, count) {
+  if (REDUCED || !el) return;
+  const r = el.getBoundingClientRect();
+  runConfetti([{ x: r.left + r.width / 2, y: Math.max(60, r.top), count: count || 70, spread: 9, up: 10 }]);
+}
+function confettiStorm() {
+  if (REDUCED) return;
+  const W = window.innerWidth;
+  runConfetti([{ x: W * 0.5, y: 90, count: 70, spread: 13, up: 12 }]);
+  window.setTimeout(() => runConfetti([
+    { x: W * 0.15, y: 130, count: 55, spread: 10, up: 11 },
+    { x: W * 0.85, y: 130, count: 55, spread: 10, up: 11 }
+  ]), 240);
+}
+
+/* ---------- toast de notificación ---------- */
+let toastEl = null, toastTimer = null;
+function showToast(msg, ms) {
+  if (!toastEl) {
+    toastEl = document.createElement("div");
+    toastEl.className = "toast";
+    toastEl.setAttribute("role", "status");
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), ms || 2600);
+}
+
+/* ---------- celebraciones al completar ---------- */
+function moduleComplete(m) {
+  const boxes = [...m.querySelectorAll("[data-topic]")];
+  return boxes.length > 0 && boxes.every((b) => b.checked);
+}
+const prevComplete = new Map();
+document.querySelectorAll(".module").forEach((m) => prevComplete.set(m, moduleComplete(m)));
+let allBefore = prevComplete.size > 0 && [...prevComplete.values()].every(Boolean);
+
+checks.forEach((c) => c.addEventListener("change", () => {
+  c.checked ? playPop() : playUnpop();
+  document.querySelectorAll(".module").forEach((m) => {
+    const complete = moduleComplete(m);
+    if (complete && !prevComplete.get(m)) {
+      const name = m.querySelector("h2")?.textContent || "Módulo";
+      showToast("🎯 Módulo «" + name + "» completado");
+      burstAt(m.querySelector(".num"), 80);
+      playChime();
+    }
+    prevComplete.set(m, complete);
+  });
+  const allDone = prevComplete.size > 0 && [...prevComplete.values()].every(Boolean);
+  if (allDone && !allBefore) {
+    showToast("🏆 ¡Ruta completada! Prepárate para brillar en Física.", 4500);
+    confettiStorm();
+    playFanfare();
+  }
+  allBefore = allDone;
+}));
+
+/* ---------- sonido sutil del acordeón ---------- */
+document.querySelectorAll("details.module > summary").forEach((s) => {
+  s.addEventListener("click", () => playTick());
+});
+
+/* ---------- easter egg: toca el ∞ del hero ---------- */
+const infStat = document.querySelectorAll(".stat")[3];
+if (infStat) infStat.style.cursor = "pointer";
+infStat?.addEventListener("click", () => {
+  burstAt(infStat, 60);
+  playChime();
+  showToast("∞ La práctica nunca termina. ¡A ello!");
+});
+
+/* ---------- tema claro / oscuro ---------- */
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  if (themeToggle) themeToggle.textContent = t === "light" ? "🌙" : "☀️";
+  try { localStorage.setItem("mathforge-theme", t); } catch (e) {}
+}
+applyTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+themeToggle?.addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  applyTheme(next);
+  playTick();
+});
+
+/* ---------- botón de silencio ---------- */
+const soundToggle = document.getElementById("soundToggle");
+function renderSoundIcon() { if (soundToggle) soundToggle.textContent = soundOn ? "🔊" : "🔇"; }
+renderSoundIcon();
+soundToggle?.addEventListener("click", () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem("mathforge-sound", soundOn ? "1" : "0"); } catch (e) {}
+  renderSoundIcon();
+  if (soundOn) playPop();
+});
+})();
+</script>
+</body>
+</html>
