@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeRoom — Tu sala de espera de trading</title>
+<meta name="description" content="TradeRoom — Alertas de precio en tiempo real (Binance), mini-juego ¿Sube o Baja?, plan del día y XP. Para esperar tus entradas sin aburrirte ni despistarte.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+try{document.documentElement.dataset.theme=localStorage.getItem('traderoom-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}
+</script>
+<style>
+:root{
+  --bg:#070b16;--panel:#0d1324;--panel2:#111a30;--text:#eef3ff;--muted:#9ca9c7;
+  --accent:#7c8cff;--accent2:#43d9b2;--gold:#ffc857;--danger:#ff6b7a;
+  --border:rgba(255,255,255,.09);--shadow:0 20px 60px rgba(0,0,0,.35)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 10%,#172554 0,transparent 32%),radial-gradient(circle at 85% 15%,#16352f 0,transparent 28%),var(--bg);color:var(--text);font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.65;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,black,transparent 85%);z-index:-1}
+::selection{background:rgba(124,140,255,.35);color:#fff}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;border-radius:6px}
+
+header{padding:46px 20px 24px;max-width:1000px;margin:auto;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;color:#cdd6ff;font-size:.85rem}
+.badge i{width:7px;height:7px;border-radius:50%;background:var(--danger);display:inline-block;transition:background .3s}
+.badge.live i{background:var(--accent2);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(67,217,178,.5)}70%{box-shadow:0 0 0 7px rgba(67,217,178,0)}100%{box-shadow:0 0 0 0 rgba(67,217,178,0)}}
+h1{font-family:"Space Grotesk","Inter",sans-serif;font-size:clamp(2.2rem,5.5vw,3.6rem);line-height:1.02;margin:16px 0 6px;background:linear-gradient(110deg,#fff,#9ba8ff 45%,#55e5bd);-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;letter-spacing:-.05em}
+header p{color:var(--muted);max-width:640px;margin:0 auto}
+.hero-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.hstat{padding:12px 18px;background:rgba(13,19,36,.75);border:1px solid var(--border);border-radius:16px;min-width:105px}
+.hstat strong{display:block;font-family:"Space Grotesk",sans-serif;font-size:1.3rem}
+.hstat span{color:var(--muted);font-size:.78rem}
+.hstat .gold{color:var(--gold)}
+
+.tabs{position:sticky;top:10px;z-index:20;display:flex;gap:8px;max-width:1000px;margin:20px auto 0;padding:10px;background:rgba(7,11,22,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:auto;margin-left:12px;margin-right:12px}
+.tab-btn{flex:1;white-space:nowrap;border:1px solid transparent;background:transparent;color:var(--muted);padding:11px 14px;border-radius:13px;cursor:pointer;font:inherit;font-weight:600;font-size:.95rem;transition:.2s}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.tab-btn.active{background:linear-gradient(135deg,rgba(124,140,255,.2),rgba(67,217,178,.14));color:var(--text);border-color:rgba(124,140,255,.35)}
+.tab-btn .ping{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin-right:6px;animation:pulse 1s infinite}
+
+main{max-width:1000px;margin:auto;padding:24px 12px 80px}
+.panel{display:none;animation:panelIn .3s ease}
+.panel.show{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{background:rgba(13,19,36,.86);border:1px solid var(--border);border-radius:24px;padding:24px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-family:"Space Grotesk",sans-serif;margin:0 0 6px;font-size:1.45rem}
+.card .sub{color:var(--muted);font-size:.92rem;margin:0 0 16px}
+
+.btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:11px 20px;border-radius:13px;cursor:pointer;font:inherit;font-weight:700;font-size:.93rem;transition:.2s}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,#6674ff,#43d9b2);color:#061018;border:none}
+.btn-primary:hover{box-shadow:0 8px 24px rgba(102,116,255,.35);filter:brightness(1.06)}
+.btn-up{background:linear-gradient(135deg,#43d9b2,#2fbf9a);color:#061018;border:none;font-size:1.15rem;padding:14px 26px}
+.btn-down{background:linear-gradient(135deg,#ff6b7a,#e04f60);color:#061018;border:none;font-size:1.15rem;padding:14px 26px}
+.txt-input,.sel-input{background:#0a1020;border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:12px;font:inherit;outline:none}
+.txt-input:focus,.sel-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.18)}
+
+/* ---------- alertas ---------- */
+.alert-form{display:grid;gap:12px}
+.alert-row{display:flex;gap:10px;flex-wrap:wrap}
+.alert-row .txt-input{flex:1;min-width:120px}
+.symbol-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:transparent;color:var(--muted);padding:6px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:600;transition:.2s}
+.chip:hover{color:var(--text);border-color:var(--accent)}
+.price-preview{font-family:"JetBrains Mono",monospace;font-size:.92rem;color:var(--accent2);min-height:22px}
+.price-preview.err{color:var(--danger)}
+.alert-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:15px 17px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:16px;margin-top:12px;animation:itemIn .25s ease}
+@keyframes itemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.alert-item .dir{font-size:1.3rem}
+.alert-item .main b{font-family:"JetBrains Mono",monospace;font-size:1.05rem}
+.alert-item .main span{display:block;color:var(--muted);font-size:.83rem}
+.alert-item .live{text-align:right;font-family:"JetBrains Mono",monospace}
+.alert-item .live b{display:block;font-size:1.02rem}
+.alert-item .live span{font-size:.78rem;color:var(--muted)}
+.alert-item .live .near{color:var(--gold);font-weight:700}
+.alert-item .live .ok{color:var(--accent2)}
+.alert-item.triggered{border-color:rgba(67,217,178,.5);background:rgba(67,217,178,.06)}
+.alert-actions{display:flex;flex-direction:column;gap:6px}
+.mini-btn{border:1px solid var(--border);background:transparent;color:var(--muted);padding:5px 10px;border-radius:9px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:600;transition:.2s}
+.mini-btn:hover{color:var(--text);border-color:var(--accent)}
+.mini-btn.danger:hover{color:var(--danger);border-color:var(--danger)}
+.empty{color:var(--muted);text-align:center;padding:22px 10px;border:1px dashed var(--border);border-radius:14px;margin-top:12px;font-size:.92rem}
+.notif-hint{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:14px;border-top:1px dashed var(--border);color:var(--muted);font-size:.85rem}
+
+/* ---------- juego ---------- */
+.game-top{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.gstat{padding:10px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;text-align:center;min-width:95px}
+.gstat b{display:block;font-family:"Space Grotesk",sans-serif;font-size:1.25rem}
+.gstat span{font-size:.75rem;color:var(--muted)}
+.gstat .lvl{color:var(--accent2)}
+#gameChart{width:100%;height:260px;display:block;background:#070c18;border:1px solid var(--border);border-radius:16px}
+.game-msg{text-align:center;margin:12px 0 4px;min-height:28px;font-weight:600}
+.game-msg.win{color:var(--accent2)}
+.game-msg.lose{color:var(--danger)}
+.bet-row{display:flex;gap:12px;justify-content:center;margin-top:8px}
+.game-note{text-align:center;color:var(--muted);font-size:.82rem;margin-top:12px}
+
+/* ---------- plan ---------- */
+.task-item{display:flex;align-items:center;gap:12px;padding:13px 15px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;margin-top:8px;transition:border-color .2s}
+.task-item .txt{flex:1;word-break:break-word}
+.task-item.done .txt{text-decoration:line-through;color:var(--muted)}
+.task-item.done{border-style:dashed;opacity:.75}
+.check-box{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:7px;margin:0;border:1.5px solid rgba(255,255,255,.28);background:#0a1020;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .2s,border-color .2s,transform .12s}
+.check-box:after{content:"";width:11px;height:6px;border-left:2.4px solid #061018;border-bottom:2.4px solid #061018;transform:rotate(-45deg) scale(0) translate(1px,-1px);transition:transform .22s cubic-bezier(.2,.9,.3,1.5)}
+.check-box:checked{background:linear-gradient(135deg,#6674ff,#43d9b2);border-color:transparent}
+.check-box:checked:after{transform:rotate(-45deg) scale(1) translate(1px,-1px)}
+.del-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:8px;transition:.2s}
+.del-btn:hover{color:var(--danger);background:rgba(255,107,122,.1)}
+
+/* ---------- comunes ---------- */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,18px);z-index:90;background:rgba(17,26,48,.93);border:1px solid var(--border);border-radius:14px;padding:12px 20px;box-shadow:var(--shadow);font-weight:600;font-size:.94rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:min(92vw,480px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.alarm{border-color:rgba(67,217,178,.6);font-size:1.05rem}
+.confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:80}
+.corner{position:fixed;top:14px;right:14px;z-index:50;display:flex;gap:8px}
+.icon-btn{width:44px;height:44px;border:1px solid var(--border);background:rgba(13,19,36,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--text);border-radius:14px;cursor:pointer;font-size:1.05rem;transition:.2s}
+.icon-btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.icon-btn.alerting{background:var(--danger);border-color:var(--danger);animation:pulse 1s infinite}
+footer{color:var(--muted);text-align:center;padding:20px 16px 34px;font-size:.86rem}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:11px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1d2742;border-radius:99px;border:3px solid var(--bg)}
+
+html[data-theme="light"]{
+  --bg:#f3f5fb;--panel:#ffffff;--panel2:#eef1fa;--text:#131b2e;--muted:#5a6577;
+  --accent:#4f5fd9;--accent2:#0d9e7b;--gold:#c98600;--danger:#d93048;
+  --border:rgba(19,27,46,.12);--shadow:0 20px 50px rgba(30,40,80,.12);
+}
+html[data-theme="light"] body{background:radial-gradient(circle at 15% 10%,#dfe7ff 0,transparent 32%),radial-gradient(circle at 85% 15%,#d3efe7 0,transparent 28%),var(--bg)}
+html[data-theme="light"] body:before{background-image:linear-gradient(rgba(19,27,46,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(19,27,46,.05) 1px,transparent 1px)}
+html[data-theme="light"] h1{background:linear-gradient(110deg,#131b2e,#4f5fd9 45%,#0d9e7b);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .badge{color:#3c4a8a;background:rgba(19,27,46,.05)}
+html[data-theme="light"] .hstat,html[data-theme="light"] .card{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .tabs{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .txt-input,html[data-theme="light"] .sel-input{background:#eef1fa;color:#131b2e}
+html[data-theme="light"] .btn{background:#e9edf8;color:#131b2e}
+html[data-theme="light"] .icon-btn{background:rgba(255,255,255,.9)}
+html[data-theme="light"] .toast{background:rgba(255,255,255,.96);color:#131b2e}
+html[data-theme="light"] .check-box{background:#fff;border-color:rgba(19,27,46,.3)}
+html[data-theme="light"] #gameChart{background:#eef2fc}
+html[data-theme="light"] .gstat{background:rgba(255,255,255,.7)}
+
+@media(max-width:640px){
+  .bet-row{flex-direction:column}
+  .alert-item{grid-template-columns:auto 1fr}
+  .alert-item .live{grid-column:2;text-align:left}
+  header{padding-top:58px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="corner">
+  <button id="alertBell" class="icon-btn hidden" aria-label="Hay una alerta sonando">🔔</button>
+  <button id="themeToggle" class="icon-btn" aria-label="Cambiar tema" title="Cambiar tema">☀️</button>
+  <button id="soundToggle" class="icon-btn" aria-label="Sonidos" title="Sonidos">🔊</button>
+</div>
+
+<header>
+  <span class="badge" id="connBadge"><i></i> TRADEROOM · conectando…</span>
+  <h1>Esperar tu entrada sin perderte nada.</h1>
+  <p>Pon tus alertas de precio, sigue tu plan y mata el aburrimiento con el mini-juego. Cuando el mercado se mueva a tu nivel, la app te avisará a gritos.</p>
+  <div class="hero-stats">
+    <div class="hstat"><strong id="hAlerts">0</strong><span>alertas activas</span></div>
+    <div class="hstat"><strong id="hXp">0</strong><span>XP</span></div>
+    <div class="hstat"><strong id="hPts" class="gold">0</strong><span>puntos</span></div>
+    <div class="hstat"><strong id="hBest">0</strong><span>mejor racha</span></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Secciones">
+  <button class="tab-btn active" data-tab="alerts">🚨 Alertas</button>
+  <button class="tab-btn" data-tab="game">🎮 ¿Sube o Baja?</button>
+  <button class="tab-btn" data-tab="plan">✅ Plan del día</button>
+</nav>
+
+<main>
+<!-- ============ ALERTAS ============ -->
+<section class="panel show" id="panel-alerts">
+  <div class="card">
+    <h2>🚨 Alertas de precio en vivo</h2>
+    <p class="sub">Precios reales de Binance (cripto), actualizados cada pocos segundos. Te avisamos con alarma, pestaña parpadeante y notificación cuando el precio toque tu nivel.</p>
+    <div class="alert-form">
+      <div class="symbol-box">
+        <input class="txt-input" id="symInput" type="text" placeholder="Símbolo (ej. BTCUSDT)" style="text-transform:uppercase;max-width:220px">
+        <div class="chips">
+          <button class="chip" data-sym="BTCUSDT">BTC</button>
+          <button class="chip" data-sym="ETHUSDT">ETH</button>
+          <button class="chip" data-sym="SOLUSDT">SOL</button>
+          <button class="chip" data-sym="BNBUSDT">BNB</button>
+          <button class="chip" data-sym="XRPUSDT">XRP</button>
+          <button class="chip" data-sym="DOGEUSDT">DOGE</button>
+        </div>
+      </div>
+      <div class="price-preview" id="pricePreview">Escribe un símbolo para ver su precio actual.</div>
+      <div class="alert-row">
+        <select class="sel-input" id="dirInput" aria-label="Dirección">
+          <option value=">=">≥ sube hasta</option>
+          <option value="<=">≤ baja hasta</option>
+        </select>
+        <input class="txt-input" id="targetInput" type="number" step="any" min="0" placeholder="Precio objetivo">
+        <button class="btn btn-primary" id="alertAdd">＋ Crear alerta</button>
+      </div>
+    </div>
+    <div id="alertList"></div>
+    <div class="empty hidden" id="alertEmpty">Sin alertas todavía. Crea la primera arriba 👆 y deja esta pestaña abierta mientras esperas.</div>
+    <div class="notif-hint">
+      <span>💡 Para que te avise aunque estés en otra pestaña o app, permite las notificaciones.</span>
+      <button class="btn" id="notifBtn">🔔 Activar notificaciones</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JUEGO ============ -->
+<section class="panel" id="panel-game">
+  <div class="card">
+    <h2>🎮 ¿Sube o Baja?</h2>
+    <p class="sub">El aburrimiento es el enemigo del trader. Canalízalo aquí: una gráfica simulada, apuestas puntos virtuales a la siguiente vela. Practicas lectura sin arriesgar un céntimo — y si salta una alerta real, te enteras al momento.</p>
+    <div class="game-top">
+      <div class="gstat"><b id="gPts">0</b><span>puntos</span></div>
+      <div class="gstat"><b id="gStreak">0</b><span>racha actual</span></div>
+      <div class="gstat"><b id="gXp">0</b><span>XP</span></div>
+      <div class="gstat"><b class="lvl" id="gLvl">—</b><span>nivel</span></div>
+    </div>
+    <canvas id="gameChart" width="1000" height="320" aria-label="Gráfica del juego"></canvas>
+    <div class="game-msg" id="gameMsg">¿Hacia dónde crees que irá la siguiente vela?</div>
+    <div class="bet-row">
+      <button class="btn btn-up" id="betUp">▲ Subirá</button>
+      <button class="btn btn-down" id="betDown">▼ Bajará</button>
+    </div>
+    <p class="game-note">Ganar suma 10 pts + bonus de racha · perder resta 10 · el multiplicador crece con tu racha 🔥</p>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section class="panel" id="panel-plan">
+  <div class="card">
+    <h2>✅ Plan del día</h2>
+    <p class="sub">Tu checklist de sesión. Se desmarca solo cada mañana. Un trader con plan no necesita suerte.</p>
+    <div class="alert-row">
+      <input class="txt-input" id="planInput" type="text" placeholder="Ej.: marcar niveles clave, revisar calendario, máx. 2 trades hoy..." maxlength="120">
+      <button class="btn btn-primary" id="planAdd">Añadir</button>
+    </div>
+    <div class="chips" style="margin-top:10px">
+      <button class="chip" data-plan="Marcar soportes y resistencias">+ niveles</button>
+      <button class="chip" data-plan="Definir riesgo máximo del día">+ riesgo</button>
+      <button class="chip" data-plan="Revisar noticias del día">+ noticias</button>
+      <button class="chip" data-plan="Máximo 2 operaciones hoy">+ límite trades</button>
+    </div>
+    <div id="planList"></div>
+    <div class="empty hidden" id="planEmpty">Plan vacío. Añade tus reglas de hoy (o toca los atajos de arriba).</div>
+  </div>
+</section>
+</main>
+
+<footer>TradeRoom · precios vía API pública de Binance · sin registro · tus datos se quedan en tu navegador ⚠️ No es consejo financiero</footer>
+
+<script>
+"use strict";
+/* ================= utilidades ================= */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function load(k, fb){ try { const v = JSON.parse(localStorage.getItem(k)); return v === null || v === undefined ? fb : v; } catch(e){ return fb; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function esc(s){ return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtPrice(p){
+  if (p === null || p === undefined || isNaN(p)) return "—";
+  if (p >= 1000) return p.toLocaleString("es-ES", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  if (p >= 1) return p.toLocaleString("es-ES", { maximumFractionDigits: 4 });
+  return p.toLocaleString("es-ES", { maximumFractionDigits: 6 });
+}
+function iso(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+
+/* ================= sonidos ================= */
+let soundOn = true;
+try { soundOn = (localStorage.getItem("traderoom-sound") ?? "1") === "1"; } catch(e){}
+let audioCtx = null;
+function ensureAudio(){
+  if (!audioCtx){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, when, dur, vol, type){
+  if (!soundOn) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.type = type || "sine"; osc.frequency.value = freq;
+  const t = ctx.currentTime + when;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + dur + 0.05);
+}
+const playTick = () => tone(340, 0, 0.05, 0.06, "triangle");
+const playPop = () => { tone(540, 0, 0.09, 0.12); tone(830, 0.06, 0.12, 0.1); };
+let alarmId = 0;
+function startAlarm(){
+  stopAlarm();
+  let n = 0;
+  alarmId = window.setInterval(() => {
+    [880, 660, 880, 1046].forEach((f,i)=>tone(f, i*0.12, 0.16, 0.14));
+    if (++n >= 6) stopAlarm();
+  }, 900);
+}
+function stopAlarm(){ if (alarmId){ window.clearInterval(alarmId); alarmId = 0; } }
+
+/* ================= pestaña parpadeante + notificaciones ================= */
+const baseTitle = document.title;
+let flashId = 0;
+function flashTitle(msg){
+  stopFlash();
+  let on = false;
+  flashId = window.setInterval(() => {
+    on = !on;
+    document.title = on ? "🚨 " + msg : baseTitle;
+  }, 900);
+  $("#alertBell")?.classList.remove("hidden");
+  $("#alertBell")?.classList.add("alerting");
+}
+function stopFlash(){
+  if (flashId){ window.clearInterval(flashId); flashId = 0; }
+  document.title = baseTitle;
+  $("#alertBell")?.classList.add("hidden");
+  $("#alertBell")?.classList.remove("alerting");
+}
+$("#alertBell")?.addEventListener("click", () => { stopAlarm(); stopFlash(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden){ stopAlarm(); stopFlash(); } });
+
+function notify(title, body){
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  try { new Notification(title, { body: body }); } catch(e){}
+}
+$("#notifBtn")?.addEventListener("click", async () => {
+  if (!("Notification" in window)){ showToast("Tu navegador no soporta notificaciones."); return; }
+  const p = await Notification.requestPermission();
+  if (p === "granted"){ showToast("🔔 Notificaciones activadas. ¡No te perderás nada!"); $("#notifBtn").textContent = "🔔 Notificaciones activadas"; }
+  else showToast("Permiso denegado. Podrás ver las alertas dentro de la app igualmente.");
+});
+if ("Notification" in window && Notification.permission === "granted") $("#notifBtn").textContent = "🔔 Notificaciones activadas";
+
+/* ================= toast + confeti ================= */
+let toastEl = null, toastTimer = null;
+function showToast(msg, ms, alarm){
+  if (!toastEl){ toastEl = document.createElement("div"); toastEl.className = "toast"; toastEl.setAttribute("role","status"); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.toggle("alarm", !!alarm);
+  toastEl.classList.add("show");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), ms || 2600);
+}
+function confetti(pieces){
+  if (REDUCED) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  const canvas = document.createElement("canvas"); canvas.className = "confetti-canvas";
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  const ctx = canvas.getContext("2d"); if (!ctx) return;
+  ctx.scale(dpr, dpr); document.body.appendChild(canvas);
+  const COLORS = ["#7c8cff","#43d9b2","#ffc857","#ff6b7a","#ffffff"];
+  const parts = [];
+  for (let i=0;i<pieces;i++) parts.push({ x:W/2+(Math.random()-0.5)*W*0.7, y:80+(Math.random()-0.5)*30, vx:(Math.random()-0.5)*9, vy:-(Math.random()*8)-2, g:0.22+Math.random()*0.18, s:4+Math.random()*5, c:COLORS[(Math.random()*COLORS.length)|0], r:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.3, life:1 });
+  let last = performance.now();
+  (function tick(now){
+    const dt = Math.min(34, now-last)/16.7; last = now;
+    ctx.clearRect(0,0,W,H);
+    let alive = false;
+    parts.forEach(p => {
+      p.vy += p.g*dt; p.vx *= 0.995; p.x += p.vx*dt; p.y += p.vy*dt; p.r += p.vr*dt; p.life -= 0.009*dt;
+      if (p.life > 0 && p.y < H+30){
+        alive = true;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life)); ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.62); ctx.restore();
+      }
+    });
+    if (alive) requestAnimationFrame(tick); else canvas.remove();
+  })(performance.now());
+}
+
+/* ================= tema y sonido ================= */
+const themeToggle = $("#themeToggle");
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  if (themeToggle) themeToggle.textContent = t === "light" ? "🌙" : "☀️";
+  try { localStorage.setItem("traderoom-theme", t); } catch(e){}
+  drawGame();
+}
+applyTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+themeToggle?.addEventListener("click", () => { applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light"); playTick(); });
+
+const soundToggle = $("#soundToggle");
+function renderSound(){ if (soundToggle) soundToggle.textContent = soundOn ? "🔊" : "🔇"; }
+renderSound();
+soundToggle?.addEventListener("click", () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem("traderoom-sound", soundOn ? "1" : "0"); } catch(e){}
+  renderSound(); if (soundOn) playPop();
+});
+
+/* ================= ALERTAS DE PRECIO ================= */
+let alerts = load("tr-alerts", []);
+const prices = {};        // símbolo -> precio actual
+let connOK = false;
+const symInput = $("#symInput"), targetInput = $("#targetInput"), dirInput = $("#dirInput");
+const pricePreview = $("#pricePreview"), alertList = $("#alertList"), alertEmpty = $("#alertEmpty");
+
+async function fetchPrices(symbols){
+  if (!symbols.length) return;
+  const url = "https://api.binance.com/api/v3/ticker/price?symbols=" + encodeURIComponent(JSON.stringify(symbols));
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("http " + r.status);
+  const arr = await r.json();
+  arr.forEach(x => { prices[x.symbol] = +x.price; });
+}
+function symbolsNeeded(){
+  const s = new Set(alerts.filter(a => !a.triggered).map(a => a.symbol));
+  const sym = symInput.value.trim().toUpperCase();
+  if (sym.length >= 5) s.add(sym);
+  return [...s];
+}
+async function poll(){
+  const need = symbolsNeeded();
+  try {
+    await fetchPrices(need);
+    setConn(true);
+  } catch(e){
+    setConn(false);
+  }
+  renderPreview(); renderAlerts(); checkAlerts();
+}
+function setConn(ok){
+  if (connOK === ok) return;
+  connOK = ok;
+  const b = $("#connBadge");
+  b.classList.toggle("live", ok);
+  b.innerHTML = "<i></i> " + (ok ? "TRADEROOM · precios en vivo" : "TRADEROOM · sin conexión con Binance");
+}
+function renderPreview(){
+  const sym = symInput.value.trim().toUpperCase();
+  if (sym.length < 5){ pricePreview.textContent = "Escribe un símbolo para ver su precio actual."; pricePreview.classList.remove("err"); return; }
+  if (prices[sym] !== undefined){
+    pricePreview.classList.remove("err");
+    pricePreview.textContent = "💹 " + sym + " ahora: " + fmtPrice(prices[sym]);
+  } else if (connOK){
+    pricePreview.classList.add("err");
+    pricePreview.textContent = "⚠️ No encuentro «" + esc(sym) + "» en Binance. Prueba con BTCUSDT, ETHUSDT…";
+  }
+}
+function checkAlerts(){
+  alerts.forEach(a => {
+    if (a.triggered) return;
+    const p = prices[a.symbol];
+    if (p === undefined) return;
+    const hit = a.dir === ">=" ? p >= a.target : p <= a.target;
+    if (hit) fireAlert(a, p);
+  });
+}
+function fireAlert(a, p){
+  a.triggered = true;
+  a.firedAt = Date.now();
+  save("tr-alerts", alerts);
+  const msg = a.symbol + " " + a.dir + " " + fmtPrice(a.target) + " (ahora " + fmtPrice(p) + ")";
+  showToast("🚨 ¡ALERTA! " + msg, 8000, true);
+  startAlarm();
+  flashTitle("¡" + a.symbol + " tocó tu nivel!");
+  notify("🚨 Alerta de TradeRoom", msg);
+  confetti(70);
+  const tab = $('.tab-btn[data-tab="alerts"]');
+  if (tab && !tab.classList.contains("active")) tab.insertAdjacentHTML("afterbegin", '<span class="ping" id="tabPing"></span>');
+  renderAlerts(); renderHero();
+}
+$("#tabPing")?.remove();
+
+function distanceInfo(a){
+  const p = prices[a.symbol];
+  if (p === undefined) return { txt:"esperando precio…", cls:"" };
+  const dist = a.dir === ">=" ? (a.target - p) / p * 100 : (p - a.target) / p * 100;
+  if (dist <= 0) return { txt:"¡tocando!", cls:"ok" };
+  const t = dist.toFixed(1) + "% " + (a.dir === ">=" ? "por encima" : "por debajo");
+  return { txt: t, cls: dist <= 1.5 ? "near" : "" };
+}
+function renderAlerts(){
+  alertList.innerHTML = alerts.map((a, i) => {
+    if (a.triggered) return '<div class="alert-item triggered"><span class="dir">✅</span><div class="main"><b>' + esc(a.symbol) + '</b><span>objetivo ' + fmtPrice(a.target) + ' · disparada</span></div><div class="alert-actions"><button class="mini-btn" data-react="' + i + '">↺ reactivar</button><button class="mini-btn danger" data-del="' + i + '">borrar</button></div></div>';
+    const d = distanceInfo(a);
+    return '<div class="alert-item"><span class="dir">' + (a.dir === ">=" ? "📈" : "📉") + '</span><div class="main"><b>' + esc(a.symbol) + '</b><span>avísame si ' + (a.dir === ">=" ? "llega a" : "cae a") + ' ' + fmtPrice(a.target) + '</span></div><div class="live"><b>' + fmtPrice(prices[a.symbol]) + '</b><span class="' + d.cls + '">' + d.txt + '</span></div><div class="alert-actions"><button class="mini-btn danger" data-del="' + i + '">borrar</button></div></div>';
+  }).join("");
+  alertEmpty.classList.toggle("hidden", alerts.length > 0);
+  alertList.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { alerts.splice(+b.dataset.del, 1); save("tr-alerts", alerts); playTick(); renderAlerts(); renderHero(); }));
+  alertList.querySelectorAll("[data-react]").forEach(b => b.addEventListener("click", () => { const a = alerts[+b.dataset.react]; if (a){ a.triggered = false; delete a.firedAt; save("tr-alerts", alerts); playPop(); renderAlerts(); renderHero(); } }));
+}
+function addAlert(){
+  const sym = symInput.value.trim().toUpperCase();
+  const target = +targetInput.value;
+  if (sym.length < 5){ showToast("Escribe un símbolo válido (ej. BTCUSDT)."); return; }
+  if (!target || target <= 0){ showToast("Pon un precio objetivo válido."); return; }
+  if (prices[sym] === undefined && connOK){ showToast("Ese símbolo no existe en Binance."); return; }
+  alerts.push({ symbol: sym, dir: dirInput.value, target: target, triggered: false });
+  save("tr-alerts", alerts);
+  targetInput.value = "";
+  playPop(); showToast("🚨 Alerta creada: " + sym);
+  renderAlerts(); renderHero(); poll();
+}
+$("#alertAdd")?.addEventListener("click", addAlert);
+targetInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addAlert(); });
+symInput?.addEventListener("input", renderPreview);
+$$(".chip[data-sym]").forEach(c => c.addEventListener("click", () => { symInput.value = c.dataset.sym; renderPreview(); poll(); }));
+
+/* ================= JUEGO: ¿Sube o Baja? ================= */
+let game = load("tr-game", { pts: 100, xp: 0, best: 0, streak: 0 });
+let walk = [], result = null, busy = false;
+const LEVELS = [[0,"🐣 Curioso"],[80,"👀 Observador"],[200,"📊 Lector"],[400,"🎯 Francotirador"],[700,"🦈 Tiburón"],[1200,"🏛️ Market Maker"]];
+function levelOf(xp){ let l = LEVELS[0][1]; LEVELS.forEach(([n, name]) => { if (xp >= n) l = name; }); return l; }
+function seedWalk(){
+  walk = [];
+  let p = 100;
+  for (let i = 0; i < 42; i++){ p += (Math.random() - 0.5) * 2.2; walk.push(p); }
+}
+function drawGame(){
+  const c = $("#gameChart"); if (!c) return;
+  const ctx = c.getContext("2d"); if (!ctx) return;
+  const W = c.width, H = c.height;
+  const light = document.documentElement.dataset.theme === "light";
+  ctx.clearRect(0,0,W,H);
+  const min = Math.min(...walk) - 1, max = Math.max(...walk) + 1;
+  const padL = 14, padR = 60, padT = 18, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const X = i => padL + plotW * i / (walk.length - 1);
+  const Y = v => padT + plotH * (1 - (v - min) / (max - min));
+  ctx.strokeStyle = light ? "rgba(19,27,46,.08)" : "rgba(255,255,255,.07)";
+  ctx.lineWidth = 1;
+  for (let g = 0; g < 5; g++){ const y = padT + plotH*g/4; ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke(); }
+  ctx.strokeStyle = light ? "rgba(19,27,46,.4)" : "rgba(255,255,255,.75)";
+  if (result){
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i < walk.length - result.tail; i++){ const px = X(i), py = Y(walk[i]); i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); }
+    ctx.stroke();
+    ctx.strokeStyle = result.up ? "#43d9b2" : "#ff6b7a";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (let i = walk.length - result.tail - 1; i < walk.length; i++){ const px = X(i), py = Y(walk[i]); i === walk.length - result.tail - 1 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); }
+    ctx.stroke();
+  } else {
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    walk.forEach((v, i) => { const px = X(i), py = Y(v); i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); });
+    ctx.stroke();
+  }
+  const lastX = X(walk.length-1), lastY = Y(walk[walk.length-1]);
+  ctx.fillStyle = result ? (result.up ? "#43d9b2" : "#ff6b7a") : "#ffc857";
+  ctx.beginPath(); ctx.arc(lastX, lastY, 6, 0, Math.PI*2); ctx.fill();
+  ctx.font = "600 20px 'JetBrains Mono', monospace";
+  ctx.fillStyle = light ? "#131b2e" : "#cdd6ff";
+  ctx.fillText(fmtPrice(walk[walk.length-1]), Math.min(lastX + 10, W - 58), lastY + 7);
+}
+function renderGameStats(){
+  $("#gPts").textContent = game.pts;
+  $("#gStreak").textContent = game.streak;
+  $("#gXp").textContent = game.xp;
+  $("#gLvl").textContent = levelOf(game.xp);
+}
+function setBusy(b){
+  busy = b;
+  $("#betUp").disabled = b; $("#betDown").disabled = b;
+}
+function nextTickValue(p){
+  return p + (Math.random() - 0.5) * 2.2 + (p > 104 ? -0.5 : p < 96 ? 0.5 : 0); // ligera reversión a la media
+}
+function bet(dir){
+  if (busy) return;
+  setBusy(true); playTick();
+  const tail = 5;
+  const steps = [];
+  let p = walk[walk.length-1];
+  for (let i = 0; i < tail; i++){ p = nextTickValue(p); steps.push(p); }
+  const up = steps[steps.length-1] > walk[walk.length-1];
+  let i = 0;
+  const anim = window.setInterval(() => {
+    walk.push(steps[i]); i++;
+    if (walk.length > 60) walk.shift();
+    drawGame();
+    if (i >= steps.length){ window.clearInterval(anim); finishBet(dir, up); }
+  }, 110);
+}
+function finishBet(dir, up){
+  result = { tail: 5, up: up };
+  drawGame();
+  const win = (dir === (up ? "up" : "down"));
+  const msg = $("#gameMsg");
+  if (win){
+    const gain = 10 + game.streak * 2;
+    game.pts += gain; game.streak += 1; game.xp += 12;
+    game.best = Math.max(game.best, game.streak);
+    msg.textContent = "✅ ¡" + (up ? "Subió" : "Bajó") + " y acertaste! +" + gain + " pts" + (game.streak >= 3 ? " · racha " + game.streak + " 🔥" : "");
+    msg.className = "game-msg win";
+    playPop();
+    if (game.streak > 0 && game.streak % 5 === 0){ confetti(50); showToast("🔥 ¡Racha de " + game.streak + "! Estás en racha, trader."); }
+  } else {
+    game.pts = Math.max(0, game.pts - 10); game.streak = 0; game.xp += 2;
+    msg.textContent = "❌ " + (up ? "Subió" : "Bajó") + "… te ha ganado. −10 pts";
+    msg.className = "game-msg lose";
+    tone(300, 0, 0.12, 0.1); tone(220, 0.1, 0.18, 0.09);
+  }
+  save("tr-game", game);
+  renderGameStats(); renderHero();
+  result = null;
+  window.setTimeout(() => {
+    drawGame();
+    msg.textContent = "¿Y la siguiente? 🎯";
+    msg.className = "game-msg";
+    setBusy(false);
+  }, 1400);
+}
+$("#betUp")?.addEventListener("click", () => bet("up"));
+$("#betDown")?.addEventListener("click", () => bet("down"));
+
+/* ================= PLAN DEL DÍA ================= */
+let plan = load("tr-plan", { date: "", items: [] });
+if (plan.date !== iso(new Date())) plan = { date: iso(new Date()), items: plan.items.map(i => ({ text: i.text, done: false })) };
+const planList = $("#planList"), planInput = $("#planInput"), planEmpty = $("#planEmpty");
+function savePlan(){ save("tr-plan", plan); }
+function renderPlan(){
+  planList.innerHTML = plan.items.map((t, i) => '<div class="task-item' + (t.done ? " done" : "") + '"><input type="checkbox" class="check-box" data-i="' + i + '"' + (t.done ? " checked" : "") + ' aria-label="Marcar"><span class="txt">' + esc(t.text) + '</span><button class="del-btn" data-i="' + i + '" aria-label="Eliminar">✕</button></div>').join("");
+  planEmpty.classList.toggle("hidden", plan.items.length > 0);
+  planList.querySelectorAll(".check-box").forEach(cb => cb.addEventListener("change", () => {
+    const t = plan.items[+cb.dataset.i]; if (!t) return;
+    t.done = cb.checked;
+    if (t.done){ playPop(); if (plan.items.length && plan.items.every(x => x.done)){ showToast("📋 ¡Plan del día completado! A operar con disciplina 🫡"); confetti(80); game.xp += 25; save("tr-game", game); renderGameStats(); renderHero(); } }
+    savePlan(); renderPlan();
+  }));
+  planList.querySelectorAll(".del-btn").forEach(b => b.addEventListener("click", () => { plan.items.splice(+b.dataset.i, 1); playTick(); savePlan(); renderPlan(); }));
+}
+function addPlanItem(text){
+  const v = (text !== undefined ? text : planInput.value).trim();
+  if (!v) return;
+  plan.items.push({ text: v, done: false });
+  if (text === undefined){ planInput.value = ""; planInput.focus(); }
+  playTick(); savePlan(); renderPlan();
+}
+$("#planAdd")?.addEventListener("click", () => addPlanItem());
+planInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addPlanItem(); });
+$$(".chip[data-plan]").forEach(c => c.addEventListener("click", () => addPlanItem(c.dataset.plan)));
+
+/* ================= pestañas + hero ================= */
+$$(".tab-btn").forEach(b => b.addEventListener("click", () => {
+  playTick();
+  $$(".tab-btn").forEach(x => x.classList.toggle("active", x === b));
+  $$(".panel").forEach(p => p.classList.toggle("show", p.id === "panel-" + b.dataset.tab));
+  $("#tabPing")?.remove();
+  if (b.dataset.tab === "game") drawGame();
+}));
+function renderHero(){
+  $("#hAlerts").textContent = alerts.filter(a => !a.triggered).length;
+  $("#hXp").textContent = game.xp;
+  $("#hPts").textContent = game.pts;
+  $("#hBest").textContent = game.best;
+}
+
+/* ================= arranque ================= */
+seedWalk();
+renderAlerts(); renderPlan(); renderGameStats(); renderHero(); drawGame();
+poll();
+window.setInterval(poll, 5000);
+window.addEventListener("resize", drawGame);
+</script>
+</body>
+</html>
