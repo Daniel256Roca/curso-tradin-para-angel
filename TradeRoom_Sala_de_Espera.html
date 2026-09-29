@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeRoom — Tu sala de espera de trading</title>
+<meta name="description" content="TradeRoom — Alertas de precio reales, watchlist en vivo, arcade con 4 juegos, academia de trading con 10 lecciones, calculadoras, plan del día y logros con XP.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+try{document.documentElement.dataset.theme=localStorage.getItem('traderoom-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}
+</script>
+<style>
+:root{
+  --bg:#070b16;--panel:#0d1324;--panel2:#111a30;--text:#eef3ff;--muted:#9ca9c7;
+  --accent:#7c8cff;--accent2:#43d9b2;--gold:#ffc857;--danger:#ff6b7a;
+  --border:rgba(255,255,255,.09);--shadow:0 20px 60px rgba(0,0,0,.35)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 10%,#172554 0,transparent 32%),radial-gradient(circle at 85% 15%,#16352f 0,transparent 28%),var(--bg);color:var(--text);font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.65;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,black,transparent 85%);z-index:-1}
+::selection{background:rgba(124,140,255,.35);color:#fff}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;border-radius:6px}
+
+header{padding:46px 20px 24px;max-width:1000px;margin:auto;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;color:#cdd6ff;font-size:.85rem}
+.badge i{width:7px;height:7px;border-radius:50%;background:var(--danger);display:inline-block;transition:background .3s}
+.badge.live i{background:var(--accent2);animation:pulse 2.2s infinite}
+.badge.dot-only i{animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(67,217,178,.5)}70%{box-shadow:0 0 0 7px rgba(67,217,178,0)}100%{box-shadow:0 0 0 0 rgba(67,217,178,0)}}
+h1{font-family:"Space Grotesk","Inter",sans-serif;font-size:clamp(2.2rem,5.5vw,3.6rem);line-height:1.02;margin:16px 0 6px;background:linear-gradient(110deg,#fff,#9ba8ff 45%,#55e5bd);-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;letter-spacing:-.05em}
+header>p{color:var(--muted);max-width:640px;margin:0 auto}
+.hero-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.hstat{padding:12px 18px;background:rgba(13,19,36,.75);border:1px solid var(--border);border-radius:16px;min-width:100px}
+.hstat strong{display:block;font-family:"Space Grotesk",sans-serif;font-size:1.3rem}
+.hstat span{color:var(--muted);font-size:.78rem}
+.hstat .gold{color:var(--gold)}
+
+.tabs{position:sticky;top:10px;z-index:20;display:flex;gap:8px;max-width:1000px;margin:20px auto 0;padding:10px;background:rgba(7,11,22,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:auto;margin-left:12px;margin-right:12px}
+.tab-btn{flex:1;white-space:nowrap;border:1px solid transparent;background:transparent;color:var(--muted);padding:11px 14px;border-radius:13px;cursor:pointer;font:inherit;font-weight:600;font-size:.92rem;transition:.2s}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.tab-btn.active{background:linear-gradient(135deg,rgba(124,140,255,.2),rgba(67,217,178,.14));color:var(--text);border-color:rgba(124,140,255,.35)}
+.tab-btn .ping{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin-right:6px;animation:pulse 1s infinite}
+
+main{max-width:1000px;margin:auto;padding:24px 12px 80px}
+.panel{display:none;animation:panelIn .3s ease}
+.panel.show{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{background:rgba(13,19,36,.86);border:1px solid var(--border);border-radius:24px;padding:24px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-family:"Space Grotesk",sans-serif;margin:0 0 6px;font-size:1.45rem}
+.card .sub{color:var(--muted);font-size:.92rem;margin:0 0 16px}
+
+.btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:11px 20px;border-radius:13px;cursor:pointer;font:inherit;font-weight:700;font-size:.93rem;transition:.2s}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,#6674ff,#43d9b2);color:#061018;border:none}
+.btn-primary:hover{box-shadow:0 8px 24px rgba(102,116,255,.35);filter:brightness(1.06)}
+.btn-up{background:linear-gradient(135deg,#43d9b2,#2fbf9a);color:#061018;border:none;font-size:1.15rem;padding:14px 26px}
+.btn-down{background:linear-gradient(135deg,#ff6b7a,#e04f60);color:#061018;border:none;font-size:1.15rem;padding:14px 26px}
+.txt-input,.sel-input{background:#0a1020;border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:12px;font:inherit;outline:none}
+.txt-input:focus,.sel-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.18)}
+
+/* ---------- alertas ---------- */
+.alert-form{display:grid;gap:12px}
+.alert-row{display:flex;gap:10px;flex-wrap:wrap}
+.alert-row .txt-input{flex:1;min-width:120px}
+.symbol-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:transparent;color:var(--muted);padding:6px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:600;transition:.2s}
+.chip:hover{color:var(--text);border-color:var(--accent)}
+.price-preview{font-family:"JetBrains Mono",monospace;font-size:.92rem;color:var(--accent2);min-height:22px}
+.price-preview.err{color:var(--danger)}
+.alert-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:15px 17px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:16px;margin-top:12px;animation:itemIn .25s ease}
+@keyframes itemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.alert-item .dir{font-size:1.3rem}
+.alert-item .main b{font-family:"JetBrains Mono",monospace;font-size:1.05rem}
+.alert-item .main span{display:block;color:var(--muted);font-size:.83rem}
+.alert-item .live{text-align:right;font-family:"JetBrains Mono",monospace}
+.alert-item .live b{display:block;font-size:1.02rem}
+.alert-item .live span{font-size:.78rem;color:var(--muted)}
+.alert-item .live .near{color:var(--gold);font-weight:700;animation:pulse 1.6s infinite}
+.alert-item .live .ok{color:var(--accent2)}
+.alert-item.triggered{border-color:rgba(67,217,178,.5);background:rgba(67,217,178,.06)}
+.alert-actions{display:flex;flex-direction:column;gap:6px}
+.mini-btn{border:1px solid var(--border);background:transparent;color:var(--muted);padding:5px 10px;border-radius:9px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:600;transition:.2s}
+.mini-btn:hover{color:var(--text);border-color:var(--accent)}
+.mini-btn.danger:hover{color:var(--danger);border-color:var(--danger)}
+.empty{color:var(--muted);text-align:center;padding:22px 10px;border:1px dashed var(--border);border-radius:14px;margin-top:12px;font-size:.92rem}
+.notif-hint{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:14px;border-top:1px dashed var(--border);color:var(--muted);font-size:.85rem}
+
+/* ---------- watchlist ---------- */
+.watch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:14px}
+.watch-card{padding:16px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:16px;position:relative;animation:itemIn .25s ease}
+.watch-card b{font-family:"JetBrains Mono",monospace;font-size:.95rem}
+.watch-card .wp{display:block;font-family:"JetBrains Mono",monospace;font-size:1.3rem;margin:6px 0 2px}
+.watch-card .wc{font-size:.85rem;font-weight:700;font-family:"JetBrains Mono",monospace}
+.watch-card .wc.up{color:var(--accent2)}
+.watch-card .wc.dn{color:var(--danger)}
+.watch-card .del-btn{position:absolute;top:8px;right:8px}
+
+/* ---------- arcade ---------- */
+.game-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.game-nav .chip{padding:9px 16px;font-size:.88rem}
+.game-nav .chip.active{background:linear-gradient(135deg,rgba(124,140,255,.25),rgba(67,217,178,.18));color:var(--text);border-color:rgba(124,140,255,.5)}
+.game-panel{display:none;animation:panelIn .3s ease}
+.game-panel.show{display:block}
+.game-top{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.gstat{padding:10px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;text-align:center;min-width:95px}
+.gstat b{display:block;font-family:"Space Grotesk",sans-serif;font-size:1.25rem}
+.gstat span{font-size:.75rem;color:var(--muted)}
+.gstat .lvl{color:var(--accent2)}
+.game-canvas{width:100%;display:block;background:#070c18;border:1px solid var(--border);border-radius:16px}
+.game-msg{text-align:center;margin:12px 0 4px;min-height:28px;font-weight:600}
+.game-msg.win{color:var(--accent2)}
+.game-msg.lose{color:var(--danger)}
+.bet-row{display:flex;gap:12px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.game-note{text-align:center;color:var(--muted);font-size:.82rem;margin-top:12px}
+.daily-card{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:16px 18px;border:1px dashed rgba(255,200,87,.35);background:rgba(255,200,87,.05);border-radius:16px;margin-bottom:16px}
+.daily-card .dt{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.daily-card .dd{font-size:.95rem;margin-top:2px}
+.daily-card.done{border-color:rgba(67,217,178,.5);background:rgba(67,217,178,.06)}
+.daily-card.done .dd{color:var(--accent2);font-weight:700}
+
+.quiz-q{font-size:1.08rem;font-weight:600;padding:16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;margin-bottom:12px}
+.quiz-opts{display:grid;gap:8px}
+.quiz-opt{text-align:left;border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--text);padding:12px 15px;border-radius:12px;cursor:pointer;font:inherit;font-size:.93rem;transition:.2s}
+.quiz-opt:hover:not(:disabled){border-color:var(--accent);background:rgba(124,140,255,.08)}
+.quiz-opt:disabled{cursor:default}
+.quiz-opt.good{border-color:var(--accent2);background:rgba(67,217,178,.12);color:var(--accent2);font-weight:700}
+.quiz-opt.bad{border-color:var(--danger);background:rgba(255,107,122,.1);color:var(--danger)}
+.quiz-exp{margin-top:12px;padding:12px 15px;border-left:3px solid var(--gold);background:rgba(255,200,87,.06);border-radius:0 12px 12px 0;font-size:.9rem;color:#e6d9b8;animation:itemIn .25s ease}
+.quiz-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;margin-bottom:8px;font-family:"JetBrains Mono",monospace}
+
+.reflex-zone{height:230px;border-radius:16px;border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;user-select:none;transition:background .12s;text-align:center;padding:20px}
+.reflex-zone.idle{background:#111a30}
+.reflex-zone.wait{background:linear-gradient(135deg,#8f2d3b,#5c1a25)}
+.reflex-zone.go{background:linear-gradient(135deg,#2fb98d,#1f8a68)}
+.reflex-zone .rz-t{font-family:"Space Grotesk",sans-serif;font-size:1.6rem;font-weight:700}
+.reflex-zone .rz-s{color:rgba(255,255,255,.75);font-size:.9rem;margin-top:6px}
+
+/* ---------- academia ---------- */
+.lesson-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:6px}
+.lesson{padding:20px;border:1px solid var(--border);border-radius:20px;background:rgba(7,11,22,.42);transition:.25s}
+.lesson:hover{transform:translateY(-3px);border-color:rgba(124,140,255,.35)}
+.lesson .lesson-no{font-family:"JetBrains Mono",monospace;font-size:.7rem;color:var(--accent2);letter-spacing:.1em;text-transform:uppercase}
+.lesson h3{margin:6px 0 8px;font-size:1.18rem}
+.lesson p{color:#c4cce0;margin:8px 0;font-size:.94rem}
+.lesson ul{padding-left:20px;color:#c4cce0;font-size:.92rem}
+.lesson li{margin:5px 0}
+.lesson .idea{padding:11px 14px;margin:12px 0;border-left:3px solid var(--accent);background:rgba(124,140,255,.07);border-radius:0 12px 12px 0;color:#c4cce0;font-size:.92rem}
+.lesson .mistake{padding:11px 14px;margin-top:12px;background:rgba(255,107,122,.055);border:1px solid rgba(255,107,122,.15);border-radius:12px;color:#c4cce0;font-size:.92rem}
+.lesson .kicker{padding:11px 14px;margin-top:12px;background:rgba(67,217,178,.055);border:1px solid rgba(67,217,178,.15);border-radius:12px;color:#c4cce0;font-size:.92rem}
+.lesson code{font-family:"JetBrains Mono",monospace;color:#e6ebff;font-size:.88em}
+.candle-figs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.candle-fig{border:1px solid var(--border);border-radius:12px;background:#070c18;padding:8px;text-align:center}
+.candle-fig span{display:block;font-size:.72rem;color:var(--muted);margin-top:4px}
+
+/* ---------- herramientas ---------- */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tool{padding:20px;border:1px solid var(--border);border-radius:20px;background:rgba(7,11,22,.42)}
+.tool h3{margin:0 0 12px;font-size:1.15rem}
+.calc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.calc-row label{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:.8rem}
+.calc-result{margin-top:12px;padding:14px 16px;background:rgba(124,140,255,.07);border:1px dashed rgba(124,140,255,.35);border-radius:14px;font-family:"JetBrains Mono",monospace;font-size:.92rem;line-height:1.8;white-space:pre-line}
+.calc-result b{color:var(--accent2)}
+.calc-result .bad{color:var(--danger)}
+.calc-result .warn{color:var(--gold)}
+#compoundChart{width:100%;height:180px;display:block;background:#070c18;border:1px solid var(--border);border-radius:14px;margin-top:12px}
+
+/* ---------- plan ---------- */
+.task-item{display:flex;align-items:center;gap:12px;padding:13px 15px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;margin-top:8px;transition:border-color .2s}
+.task-item .txt{flex:1;word-break:break-word}
+.task-item.done .txt{text-decoration:line-through;color:var(--muted)}
+.task-item.done{border-style:dashed;opacity:.75}
+.check-box{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:7px;margin:0;border:1.5px solid rgba(255,255,255,.28);background:#0a1020;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .2s,border-color .2s,transform .12s}
+.check-box:after{content:"";width:11px;height:6px;border-left:2.4px solid #061018;border-bottom:2.4px solid #061018;transform:rotate(-45deg) scale(0) translate(1px,-1px);transition:transform .22s cubic-bezier(.2,.9,.3,1.5)}
+.check-box:checked{background:linear-gradient(135deg,#6674ff,#43d9b2);border-color:transparent}
+.check-box:checked:after{transform:rotate(-45deg) scale(1) translate(1px,-1px)}
+.del-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:8px;transition:.2s}
+.del-btn:hover{color:var(--danger);background:rgba(255,107,122,.1)}
+
+/* ---------- logros ---------- */
+.achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:8px}
+.achv{padding:16px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.02);display:flex;gap:12px;align-items:flex-start;opacity:.45;filter:grayscale(1);transition:.3s}
+.achv .ic{font-size:1.5rem}
+.achv b{display:block;font-size:.95rem}
+.achv span{font-size:.8rem;color:var(--muted)}
+.achv.got{opacity:1;filter:none;border-color:rgba(255,200,87,.45);background:rgba(255,200,87,.05)}
+.achv.got .ic{animation:achvPop .5s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes achvPop{0%{transform:scale(.3) rotate(-20deg)}100%{transform:scale(1)}}
+.progress-line{height:8px;background:#1b2540;border-radius:99px;overflow:hidden;margin-top:10px}
+.progress-line i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+
+/* ---------- comunes ---------- */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,18px);z-index:90;background:rgba(17,26,48,.93);border:1px solid var(--border);border-radius:14px;padding:12px 20px;box-shadow:var(--shadow);font-weight:600;font-size:.94rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:min(92vw,480px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.alarm{border-color:rgba(67,217,178,.6);font-size:1.05rem}
+.confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:80}
+.corner{position:fixed;top:14px;right:14px;z-index:50;display:flex;gap:8px}
+.icon-btn{width:44px;height:44px;border:1px solid var(--border);background:rgba(13,19,36,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--text);border-radius:14px;cursor:pointer;font-size:1.05rem;transition:.2s}
+.icon-btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.icon-btn.alerting{background:var(--danger);border-color:var(--danger);animation:pulse 1s infinite}
+footer{color:var(--muted);text-align:center;padding:20px 16px 34px;font-size:.86rem}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:11px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1d2742;border-radius:99px;border:3px solid var(--bg)}
+
+html[data-theme="light"]{
+  --bg:#f3f5fb;--panel:#ffffff;--panel2:#eef1fa;--text:#131b2e;--muted:#5a6577;
+  --accent:#4f5fd9;--accent2:#0d9e7b;--gold:#c98600;--danger:#d93048;
+  --border:rgba(19,27,46,.12);--shadow:0 20px 50px rgba(30,40,80,.12);
+}
+html[data-theme="light"] body{background:radial-gradient(circle at 15% 10%,#dfe7ff 0,transparent 32%),radial-gradient(circle at 85% 15%,#d3efe7 0,transparent 28%),var(--bg)}
+html[data-theme="light"] body:before{background-image:linear-gradient(rgba(19,27,46,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(19,27,46,.05) 1px,transparent 1px)}
+html[data-theme="light"] h1{background:linear-gradient(110deg,#131b2e,#4f5fd9 45%,#0d9e7b);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .badge{color:#3c4a8a;background:rgba(19,27,46,.05)}
+html[data-theme="light"] .hstat,html[data-theme="light"] .card{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .tabs{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .txt-input,html[data-theme="light"] .sel-input{background:#eef1fa;color:#131b2e}
+html[data-theme="light"] .btn{background:#e9edf8;color:#131b2e}
+html[data-theme="light"] .icon-btn{background:rgba(255,255,255,.9)}
+html[data-theme="light"] .toast{background:rgba(255,255,255,.96);color:#131b2e}
+html[data-theme="light"] .check-box{background:#fff;border-color:rgba(19,27,46,.3)}
+html[data-theme="light"] .game-canvas,html[data-theme="light"] .candle-fig,html[data-theme="light"] #compoundChart{background:#eef2fc}
+html[data-theme="light"] .gstat,html[data-theme="light"] .lesson,html[data-theme="light"] .tool,html[data-theme="light"] .watch-card,html[data-theme="light"] .achv{background:rgba(255,255,255,.78)}
+html[data-theme="light"] .lesson p,html[data-theme="light"] .lesson ul,html[data-theme="light"] .lesson .idea,html[data-theme="light"] .lesson .mistake,html[data-theme="light"] .lesson .kicker{color:#46506a}
+html[data-theme="light"] .lesson code{color:#1c2745}
+html[data-theme="light"] .quiz-exp{color:#6b5420}
+html[data-theme="light"] .quiz-opt{background:rgba(19,27,46,.03)}
+html[data-theme="light"] .reflex-zone.idle{background:#dde3f2}
+html[data-theme="light"] .progress-line{background:#dde3f2}
+
+@media(max-width:760px){.lesson-grid,.tool-grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .bet-row{flex-direction:column}
+  .alert-item{grid-template-columns:auto 1fr}
+  .alert-item .live{grid-column:2;text-align:left}
+  header{padding-top:58px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="corner">
+  <button id="alertBell" class="icon-btn hidden" aria-label="Hay una alerta sonando">🔔</button>
+  <button id="themeToggle" class="icon-btn" aria-label="Cambiar tema" title="Cambiar tema">☀️</button>
+  <button id="soundToggle" class="icon-btn" aria-label="Sonidos" title="Sonidos">🔊</button>
+</div>
+
+<header>
+  <span class="badge" id="connBadge"><i></i> TRADEROOM · conectando…</span>
+  <h1>Esperar tu entrada sin perderte nada.</h1>
+  <p>Alertas de precio reales, watchlist en vivo, 4 mini-juegos, 10 lecciones exprés, calculadoras de riesgo y un sistema de logros. Todo lo que necesitas mientras el mercado madura tu idea.</p>
+  <div class="hero-stats">
+    <div class="hstat"><strong id="hAlerts">0</strong><span>alertas activas</span></div>
+    <div class="hstat"><strong id="hXp">0</strong><span>XP</span></div>
+    <div class="hstat"><strong id="hPts" class="gold">0</strong><span>puntos</span></div>
+    <div class="hstat"><strong id="hBest">0</strong><span>mejor racha</span></div>
+    <div class="hstat"><strong id="hAchv">0/12</strong><span>logros</span></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Secciones">
+  <button class="tab-btn active" data-tab="alerts">🚨 Alertas</button>
+  <button class="tab-btn" data-tab="market">📈 Mercado</button>
+  <button class="tab-btn" data-tab="arcade">🎮 Arcade</button>
+  <button class="tab-btn" data-tab="academy">🧠 Academia</button>
+  <button class="tab-btn" data-tab="tools">🧮 Herramientas</button>
+  <button class="tab-btn" data-tab="plan">✅ Plan</button>
+  <button class="tab-btn" data-tab="achv">🏆 Logros</button>
+</nav>
+
+<main>
+<!-- ============ ALERTAS ============ -->
+<section class="panel show" id="panel-alerts">
+  <div class="card">
+    <h2>🚨 Alertas de precio en vivo</h2>
+    <p class="sub">Precios reales de Binance (cripto), cada pocos segundos. Al tocar tu nivel: alarma, pestaña parpadeante y notificación.</p>
+    <div class="alert-form">
+      <div class="symbol-box">
+        <input class="txt-input" id="symInput" type="text" placeholder="Símbolo (ej. BTCUSDT)" style="text-transform:uppercase;max-width:220px">
+        <div class="chips">
+          <button class="chip" data-sym="BTCUSDT">BTC</button>
+          <button class="chip" data-sym="ETHUSDT">ETH</button>
+          <button class="chip" data-sym="SOLUSDT">SOL</button>
+          <button class="chip" data-sym="BNBUSDT">BNB</button>
+          <button class="chip" data-sym="XRPUSDT">XRP</button>
+          <button class="chip" data-sym="DOGEUSDT">DOGE</button>
+        </div>
+      </div>
+      <div class="price-preview" id="pricePreview">Escribe un símbolo para ver su precio actual.</div>
+      <div class="alert-row">
+        <select class="sel-input" id="dirInput" aria-label="Dirección">
+          <option value=">=">≥ sube hasta</option>
+          <option value="<=">≤ baja hasta</option>
+        </select>
+        <input class="txt-input" id="targetInput" type="number" step="any" min="0" placeholder="Precio objetivo">
+        <button class="btn btn-primary" id="alertAdd">＋ Crear alerta</button>
+      </div>
+    </div>
+    <div id="alertList"></div>
+    <div class="empty hidden" id="alertEmpty">Sin alertas todavía. Crea la primera arriba 👆 y deja esta pestaña abierta mientras esperas.</div>
+    <div class="notif-hint">
+      <span>💡 Para que te avise aunque estés en otra pestaña o app, permite las notificaciones.</span>
+      <button class="btn" id="notifBtn">🔔 Activar notificaciones</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MERCADO (watchlist) ============ -->
+<section class="panel" id="panel-market">
+  <div class="card">
+    <h2>📈 Tu mercado en vivo</h2>
+    <p class="sub">Vigila tus monedas favoritas con precio y variación de las últimas 24 h. Añade o quita símbolos a tu gusto.</p>
+    <div class="alert-row">
+      <input class="txt-input" id="watchInput" type="text" placeholder="Añadir símbolo (ej. ADAUSDT)" style="text-transform:uppercase;max-width:260px">
+      <button class="btn btn-primary" id="watchAdd">＋ Añadir</button>
+      <div class="chips">
+        <button class="chip" data-watch="LINKUSDT">+LINK</button>
+        <button class="chip" data-watch="ADAUSDT">+ADA</button>
+        <button class="chip" data-watch="AVAXUSDT">+AVAX</button>
+        <button class="chip" data-watch="NEARUSDT">+NEAR</button>
+        <button class="chip" data-watch="DOTUSDT">+DOT</button>
+      </div>
+    </div>
+    <div class="watch-grid" id="watchGrid"></div>
+    <div class="empty hidden" id="watchEmpty">Watchlist vacía. Añade un símbolo para vigilarlo 🛰️</div>
+  </div>
+</section>
+
+<!-- ============ ARCADE ============ -->
+<section class="panel" id="panel-arcade">
+  <div class="daily-card" id="dailyCard">
+    <div><div class="dt">🎯 Desafío de hoy</div><div class="dd" id="dailyDesc"></div></div>
+    <div class="dd" id="dailyState" style="font-size:.8rem;color:var(--muted)"></div>
+  </div>
+  <div class="card">
+    <h2>🎮 Arcade del trader</h2>
+    <p class="sub">Cuatro juegos para matar la espera sin alejarte del mercado. Todo suma XP compartido.</p>
+    <div class="game-nav">
+      <button class="chip active" data-game="updown">📈 ¿Sube o Baja?</button>
+      <button class="chip" data-game="pattern">🕯️ Nombra la vela</button>
+      <button class="chip" data-game="reflex">⚡ Reflejos</button>
+      <button class="chip" data-game="quiz">❓ Quiz</button>
+    </div>
+    <div class="game-top">
+      <div class="gstat"><b id="gPts">0</b><span>puntos</span></div>
+      <div class="gstat"><b id="gStreak">0</b><span>racha actual</span></div>
+      <div class="gstat"><b id="gXp">0</b><span>XP</span></div>
+      <div class="gstat"><b class="lvl" id="gLvl">—</b><span>nivel</span></div>
+    </div>
+
+    <!-- juego 1: sube o baja -->
+    <div class="game-panel show" id="game-updown">
+      <canvas id="gameChart" class="game-canvas" width="1000" height="320" aria-label="Gráfica del juego"></canvas>
+      <div class="game-msg" id="gameMsg">¿Hacia dónde crees que irá la siguiente vela?</div>
+      <div class="bet-row">
+        <button class="btn btn-up" id="betUp">▲ Subirá</button>
+        <button class="btn btn-down" id="betDown">▼ Bajará</button>
+      </div>
+      <p class="game-note">Ganar suma 10 pts + bonus de racha · perder resta 10 · el multiplicador crece con tu racha 🔥</p>
+    </div>
+
+    <!-- juego 2: patrones de velas -->
+    <div class="game-panel" id="game-pattern">
+      <canvas id="patternChart" class="game-canvas" width="1000" height="300" aria-label="Patrón de velas"></canvas>
+      <div class="game-msg" id="patternMsg">¿Qué patrón de velas es este?</div>
+      <div class="quiz-opts" id="patternOpts"></div>
+      <div id="patternExp"></div>
+      <p class="game-note">Los mismos patrones que verás en tus gráficos reales. Acierta y gana +8 XP.</p>
+    </div>
+
+    <!-- juego 3: reflejos -->
+    <div class="game-panel" id="game-reflex">
+      <div class="reflex-zone idle" id="reflexZone">
+        <div><div class="rz-t">⚡ Reflejos de trader</div><div class="rz-s">Pulsa para empezar. Cuando la pantalla se ponga VERDE, toca lo más rápido que puedas. Si tocas antes de tiempo, pierdes la ronda.</div></div>
+      </div>
+      <div class="game-msg" id="reflexMsg">Mejor marca: —</div>
+      <p class="game-note">Menos de 250 ms es nivel profesional. Cada intento bajo 400 ms da XP según tu rapidez.</p>
+    </div>
+
+    <!-- juego 4: quiz -->
+    <div class="game-panel" id="game-quiz">
+      <div class="quiz-meta"><span id="quizCount">—</span><span id="quizOk">✓ 0 correctas</span></div>
+      <div class="quiz-q" id="quizQ">Cargando pregunta…</div>
+      <div class="quiz-opts" id="quizOpts"></div>
+      <div id="quizExp"></div>
+      <div class="bet-row"><button class="btn btn-primary hidden" id="quizNext">Siguiente pregunta →</button></div>
+      <p class="game-note">24 preguntas sobre gestión de riesgo, velas, órdenes y psicología. +10 XP por acierto.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACADEMIA ============ -->
+<section class="panel" id="panel-academy">
+  <div class="card">
+    <h2>🧠 Academia exprés</h2>
+    <p class="sub">10 lecciones cortas con las ideas que separan a los que sobreviven de los que revientan la cuenta. Leer una mientras esperas ya es entrenar.</p>
+    <div class="lesson-grid">
+      <article class="lesson"><span class="lesson-no">01 · Niveles</span><h3>Soportes y resistencias</h3>
+        <p>Un <b>soporte</b> es una zona donde el precio ha rebotado hacia arriba varias veces; una <b>resistencia</b>, donde ha rebotado hacia abajo. Existen por la memoria del mercado: muchos traders recuerdan esos precios y actúan ahí.</p>
+        <div class="idea"><b>Idea clave:</b> piensa en <b>zonas</b>, no en líneas exactas. El precio rara vez toca el nivel al céntimo.</div>
+        <div class="mistake"><b>⚠ Error típico:</b> entrar justo EN el nivel. Los veteranos esperan la reacción del precio (una vela de rechazo) antes de actuar.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">02 · Velas</span><h3>Velas japonesas: leer la batalla</h3>
+        <p>Cada vela resume una batalla compradores-vendedores: el <b>cuerpo</b> muestra apertura→cierre y las <b>mechas</b>, los extremos rechazados.</p>
+        <div class="candle-figs">
+          <div class="candle-fig"><svg width="60" height="90" viewBox="0 0 60 90"><line x1="30" y1="8" x2="30" y2="82" stroke="#43d9b2" stroke-width="3"/><rect x="18" y="8" width="24" height="18" fill="#43d9b2" rx="2"/></svg><span>Martillo</span></div>
+          <div class="candle-fig"><svg width="60" height="90" viewBox="0 0 60 90"><line x1="30" y1="8" x2="30" y2="82" stroke="#9ca9c7" stroke-width="3"/><rect x="18" y="42" width="24" height="5" fill="#9ca9c7" rx="2"/></svg><span>Doji</span></div>
+          <div class="candle-fig"><svg width="90" height="90" viewBox="0 0 90 90"><line x1="25" y1="30" x2="25" y2="65" stroke="#ff6b7a" stroke-width="3"/><rect x="16" y="37" width="18" height="22" fill="#ff6b7a" rx="2"/><line x1="60" y1="10" x2="60" y2="82" stroke="#43d9b2" stroke-width="3"/><rect x="48" y="18" width="24" height="58" fill="#43d9b2" rx="2"/></svg><span>Envolvente alcista</span></div>
+        </div>
+        <div class="idea"><b>Los 3 básicos:</b> <b>martillo</b> (rechazo de mínimos tras caída → posible giro al alza), <b>doji</b> (indecisión total) y <b>envolvente</b> (la nueva vela "se traga" a la anterior → cambio de fuerza).</div>
+        <div class="mistake"><b>⚠ Error típico:</b> operar un patrón en mitad de la nada. Un martillo solo importa tras una caída y en un soporte. El CONTEXTO manda.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">03 · Tendencia</span><h3>Estructura de mercado</h3>
+        <p>Una tendencia alcista es una secuencia de <b>máximos y mínimos crecientes</b> (HH/HL). Bajista: máximos y mínimos decrecientes (LH/LL). Cuando la secuencia se rompe, la tendencia también.</p>
+        <div class="idea"><b>Regla de oro:</b> opera a favor de la estructura. Comprar en tendencia bajista es remar contra la corriente.</div>
+        <div class="mistake"><b>⚠ Error típico:</b> llamar "tendencia" a cualquier subida de 3 velas en 5 minutos. Mira siempre el marco temporal superior.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">04 · Riesgo</span><h3>La regla del 1%</h3>
+        <p>Arriesga como máximo el 1-2% de tu cuenta por operación. Con 1000 € y riesgo del 1%, pierdes solo 10 € si sale mal. Puedes encadenar 10 pérdidas seguidas y seguir en el juego.</p>
+        <div class="idea"><b>La matemática de la ruina:</b> perder el 10% exige ganar +11% para recuperar; perder el 50% exige +100%; perder el 90% exige +900%. Evitar drawdowns enormes ES la ventaja.</div>
+        <div class="mistake"><b>⚠ Error típico:</b> "esta vez estoy seguro" y arriesgar el 20%. Nadie está seguro nunca. El riesgo fijo te protege de ti mismo.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">05 · R:R</span><h3>Riesgo/Beneficio y winrate</h3>
+        <p>Si arriesgas 100 € para ganar 300 €, tu R:R es 1:3. Con ese ratio solo necesitas acertar el 26% de las veces para no perder dinero (<code>winrate mínimo = 1/(1+R)</code>).</p>
+        <div class="idea"><b>Combinación ganadora:</b> muchos traders ganan con un 40% de aciertos porque cortan rápido las pérdidas (R pequeño) y dejan correr las ganancias (R grande).</div>
+        <div class="mistake"><b>⚠ Error típico:</b> ganar poco cuando aciertas y perder mucho cuando fallas — el patrón exacto que arruina cuentas con buen winrate.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">06 · Órdenes</span><h3>Tipos de órdenes</h3>
+        <ul>
+          <li><b>Market:</b> entras YA al precio actual. Rápida pero con deslizamiento.</li>
+          <li><b>Limit:</b> entras solo si el precio llega a tu nivel.</li>
+          <li><b>Stop-loss:</b> venta automática si el precio va contra ti. Tu seguro de vida.</li>
+          <li><b>Take-profit:</b> cierre automático en tu objetivo.</li>
+        </ul>
+        <div class="idea"><b>Profesionalízate:</b> define stop y objetivo ANTES de entrar, y no los toques después por emoción.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">07 · Apalancamiento</span><h3>El multiplicador (de alegrías y desastres)</h3>
+        <p>Con apalancamiento ×10, un movimiento del 1% en el precio mueve un 10% tu dinero… en ambas direcciones. Una caída del 10% te liquida la posición entera.</p>
+        <div class="idea"><b>Traducción honesta:</b> el apalancamiento no aumenta tu habilidad, solo aumenta la velocidad a la que aciertas o te equivocas.</div>
+        <div class="mistake"><b>⚠ Error típico:</b> usar ×20 o más "para ganar antes". Es la forma más rápida conocida de convertir 500 € en 0 €.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">08 · Psicología</span><h3>El enemigo eres tú (y ya lo sabes)</h3>
+        <p><b>FOMO</b> (entrar por miedo a quedarte fuera), <b>revenge trading</b> (recuperar lo perdido a la desesperada) y <b>overtrading</b> (operar por aburrimiento) destruyen más cuentas que los malos análisis.</p>
+        <div class="idea"><b>Vacunas:</b> límite de trades diarios, límite de pérdida diaria, y este arcade para el aburrimiento — juega aquí, no con tu dinero.</div>
+        <div class="kicker"><b>💚 Dato:</b> te has reconocido tú mismo el problema ("mientras espero juego y me olvido"). Eso ya te pone por delante del 90%.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">09 · Volumen</span><h3>Confirmar con volumen</h3>
+        <p>El volumen dice cuánta gente participa en un movimiento. Una ruptura de resistencia <b>con mucho volumen</b> es mucho más fiable que la misma ruptura con volumen flojo (a menudo falsa).</p>
+        <div class="idea"><b>Regla rápida:</b> precio sube + volumen sube = movimiento sano. Precio sube + volumen cae = sospecha.</div>
+        <div class="mistake"><b>⚠ Error típico:</b> entrar en roturas de fin de semana o de madrugada, cuando hay poco volumen y abundan los falsos rompimientos.</div>
+      </article>
+      <article class="lesson"><span class="lesson-no">10 · Plan</span><h3>Tu plan de trading</h3>
+        <p>Un plan escrito responde antes de la sesión: ¿qué activo?, ¿qué setup me vale?, ¿dónde entro, dónde me equivoco (stop), dónde gano (objetivo)?, ¿cuánto arriesgo?, ¿cuándo dejo de operar hoy?</p>
+        <div class="idea"><b>El test:</b> si no puedes escribir tu operación en una frase con esos 5 elementos, no es una operación: es una apuesta.</div>
+        <div class="kicker"><b>💚 Úsalo ya:</b> la pestaña ✅ Plan de esta app te lo resetea cada mañana. Complétalo antes de mirar el gráfico.</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HERRAMIENTAS ============ -->
+<section class="panel" id="panel-tools">
+  <div class="card">
+    <h2>🧮 Herramientas de riesgo</h2>
+    <p class="sub">Calculadora de posición, de riesgo/beneficio y simulador de interés compuesto. Los números de la lección 04 y 05, hechos para ti.</p>
+    <div class="tool-grid">
+      <div class="tool">
+        <h3>📐 Tamaño de posición</h3>
+        <div class="calc-row">
+          <label>Capital de la cuenta (€)<input class="txt-input" id="posCap" type="number" min="1" value="1000"></label>
+          <label>Riesgo por trade (%)<input class="txt-input" id="posRisk" type="number" min="0.1" step="0.1" value="1"></label>
+        </div>
+        <div class="calc-row">
+          <label>Precio de entrada<input class="txt-input" id="posEntry" type="number" min="0" step="any" value="65000"></label>
+          <label>Stop loss<input class="txt-input" id="posStop" type="number" min="0" step="any" value="64000"></label>
+        </div>
+        <div class="calc-result" id="posOut"></div>
+      </div>
+      <div class="tool">
+        <h3>⚖️ Riesgo / Beneficio</h3>
+        <div class="calc-row">
+          <label>Entrada<input class="txt-input" id="rrEntry" type="number" min="0" step="any" value="65000"></label>
+          <label>Stop loss<input class="txt-input" id="rrStop" type="number" min="0" step="any" value="64000"></label>
+        </div>
+        <div class="calc-row">
+          <label>Objetivo (take profit)<input class="txt-input" id="rrTarget" type="number" min="0" step="any" value="68000"></label>
+          <label>Dirección
+            <select class="sel-input" id="rrDir"><option value="long">Largo (compra)</option><option value="short">Corto (venta)</option></select>
+          </label>
+        </div>
+        <div class="calc-result" id="rrOut"></div>
+      </div>
+      <div class="tool" style="grid-column:1/-1">
+        <h3>📈 Simulador de interés compuesto</h3>
+        <div class="calc-row" style="grid-template-columns:repeat(4,1fr)">
+          <label>Capital inicial (€)<input class="txt-input" id="ciCap" type="number" min="0" value="1000"></label>
+          <label>Aporte mensual (€)<input class="txt-input" id="ciAdd" type="number" min="0" value="100"></label>
+          <label>Rentabilidad mensual (%)<input class="txt-input" id="ciRate" type="number" step="0.1" value="3"></label>
+          <label>Años<input class="txt-input" id="ciYears" type="number" min="1" max="40" value="5"></label>
+        </div>
+        <canvas id="compoundChart" width="1000" height="220" aria-label="Gráfica de interés compuesto"></canvas>
+        <div class="calc-result" id="ciOut"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section class="panel" id="panel-plan">
+  <div class="card">
+    <h2>✅ Plan del día</h2>
+    <p class="sub">Tu checklist de sesión. Se desmarca solo cada mañana. Un trader con plan no necesita suerte.</p>
+    <div class="alert-row">
+      <input class="txt-input" id="planInput" type="text" placeholder="Ej.: marcar niveles clave, revisar calendario, máx. 2 trades hoy..." maxlength="120">
+      <button class="btn btn-primary" id="planAdd">Añadir</button>
+    </div>
+    <div class="chips" style="margin-top:10px">
+      <button class="chip" data-plan="Marcar soportes y resistencias">+ niveles</button>
+      <button class="chip" data-plan="Definir riesgo máximo del día">+ riesgo</button>
+      <button class="chip" data-plan="Revisar noticias del día">+ noticias</button>
+      <button class="chip" data-plan="Máximo 2 operaciones hoy">+ límite trades</button>
+    </div>
+    <div id="planList"></div>
+    <div class="empty hidden" id="planEmpty">Plan vacío. Añade tus reglas de hoy (o toca los atajos de arriba).</div>
+  </div>
+</section>
+
+<!-- ============ LOGROS ============ -->
+<section class="panel" id="panel-achv">
+  <div class="card">
+    <h2>🏆 Logros</h2>
+    <p class="sub">Desbloquéalos usando la app: alertas, juegos, quiz, plan y reflejos. <b id="achvCount">0/12</b> conseguidos.</p>
+    <div class="progress-line"><i id="achvBar" style="width:0%"></i></div>
+    <div class="achv-grid" id="achvGrid"></div>
+  </div>
+</section>
+</main>
+
+<footer>TradeRoom · precios vía API pública de Binance · sin registro · tus datos se quedan en tu navegador ⚠️ Contenido educativo, no es consejo financiero</footer>
+
+<script>
+"use strict";
+/* ================= utilidades ================= */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function load(k, fb){ try { const v = JSON.parse(localStorage.getItem(k)); return v === null || v === undefined ? fb : v; } catch(e){ return fb; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function esc(s){ return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtPrice(p){
+  if (p === null || p === undefined || isNaN(p)) return "—";
+  if (p >= 1000) return p.toLocaleString("es-ES", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  if (p >= 1) return p.toLocaleString("es-ES", { maximumFractionDigits: 4 });
+  return p.toLocaleString("es-ES", { maximumFractionDigits: 6 });
+}
+function fmtMoney(n){ return n.toLocaleString("es-ES", { maximumFractionDigits: 0 }) + " €"; }
+function iso(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+
+/* ================= sonidos ================= */
+let soundOn = true;
+try { soundOn = (localStorage.getItem("traderoom-sound") ?? "1") === "1"; } catch(e){}
+let audioCtx = null;
+function ensureAudio(){
+  if (!audioCtx){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, when, dur, vol, type){
+  if (!soundOn) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.type = type || "sine"; osc.frequency.value = freq;
+  const t = ctx.currentTime + when;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + dur + 0.05);
+}
+const playTick = () => tone(340, 0, 0.05, 0.06, "triangle");
+const playPop = () => { tone(540, 0, 0.09, 0.12); tone(830, 0.06, 0.12, 0.1); };
+const playLose = () => { tone(300, 0, 0.12, 0.1); tone(220, 0.1, 0.18, 0.09); };
+const playChime = () => { [523.25, 659.25, 783.99].forEach((f,i)=>tone(f, i*0.09, 0.3, 0.1)); };
+let alarmId = 0;
+function startAlarm(){
+  stopAlarm();
+  let n = 0;
+  alarmId = window.setInterval(() => {
+    [880, 660, 880, 1046].forEach((f,i)=>tone(f, i*0.12, 0.16, 0.14));
+    if (++n >= 6) stopAlarm();
+  }, 900);
+}
+function stopAlarm(){ if (alarmId){ window.clearInterval(alarmId); alarmId = 0; } }
+
+/* ================= pestaña parpadeante + notificaciones ================= */
+const baseTitle = document.title;
+let flashId = 0;
+function flashTitle(msg){
+  stopFlash();
+  let on = false;
+  flashId = window.setInterval(() => { on = !on; document.title = on ? "🚨 " + msg : baseTitle; }, 900);
+  $("#alertBell")?.classList.remove("hidden");
+  $("#alertBell")?.classList.add("alerting");
+}
+function stopFlash(){
+  if (flashId){ window.clearInterval(flashId); flashId = 0; }
+  document.title = baseTitle;
+  $("#alertBell")?.classList.add("hidden");
+  $("#alertBell")?.classList.remove("alerting");
+}
+$("#alertBell")?.addEventListener("click", () => { stopAlarm(); stopFlash(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden){ stopAlarm(); stopFlash(); } });
+function notify(title, body){
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  try { new Notification(title, { body: body }); } catch(e){}
+}
+$("#notifBtn")?.addEventListener("click", async () => {
+  if (!("Notification" in window)){ showToast("Tu navegador no soporta notificaciones."); return; }
+  const p = await Notification.requestPermission();
+  if (p === "granted"){ showToast("🔔 Notificaciones activadas. ¡No te perderás nada!"); $("#notifBtn").textContent = "🔔 Notificaciones activadas"; }
+  else showToast("Permiso denegado. Podrás ver las alertas dentro de la app igualmente.");
+});
+if ("Notification" in window && Notification.permission === "granted") $("#notifBtn").textContent = "🔔 Notificaciones activadas";
+
+/* ================= toast + confeti ================= */
+let toastEl = null, toastTimer = null;
+function showToast(msg, ms, alarm){
+  if (!toastEl){ toastEl = document.createElement("div"); toastEl.className = "toast"; toastEl.setAttribute("role","status"); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.toggle("alarm", !!alarm);
+  toastEl.classList.add("show");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), ms || 2600);
+}
+function confetti(pieces){
+  if (REDUCED) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  const canvas = document.createElement("canvas"); canvas.className = "confetti-canvas";
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  const ctx = canvas.getContext("2d"); if (!ctx) return;
+  ctx.scale(dpr, dpr); document.body.appendChild(canvas);
+  const COLORS = ["#7c8cff","#43d9b2","#ffc857","#ff6b7a","#ffffff"];
+  const parts = [];
+  for (let i=0;i<pieces;i++) parts.push({ x:W/2+(Math.random()-0.5)*W*0.7, y:80+(Math.random()-0.5)*30, vx:(Math.random()-0.5)*9, vy:-(Math.random()*8)-2, g:0.22+Math.random()*0.18, s:4+Math.random()*5, c:COLORS[(Math.random()*COLORS.length)|0], r:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.3, life:1 });
+  let last = performance.now();
+  (function tick(now){
+    const dt = Math.min(34, now-last)/16.7; last = now;
+    ctx.clearRect(0,0,W,H);
+    let alive = false;
+    parts.forEach(p => {
+      p.vy += p.g*dt; p.vx *= 0.995; p.x += p.vx*dt; p.y += p.vy*dt; p.r += p.vr*dt; p.life -= 0.009*dt;
+      if (p.life > 0 && p.y < H+30){
+        alive = true;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life)); ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.62); ctx.restore();
+      }
+    });
+    if (alive) requestAnimationFrame(tick); else canvas.remove();
+  })(performance.now());
+}
+
+/* ================= tema y sonido ================= */
+const themeToggle = $("#themeToggle");
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  if (themeToggle) themeToggle.textContent = t === "light" ? "🌙" : "☀️";
+  try { localStorage.setItem("traderoom-theme", t); } catch(e){}
+  drawGame(); drawCompound();
+}
+applyTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+themeToggle?.addEventListener("click", () => { applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light"); playTick(); });
+const soundToggle = $("#soundToggle");
+function renderSound(){ if (soundToggle) soundToggle.textContent = soundOn ? "🔊" : "🔇"; }
+renderSound();
+soundToggle?.addEventListener("click", () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem("traderoom-sound", soundOn ? "1" : "0"); } catch(e){}
+  renderSound(); if (soundOn) playPop();
+});
+
+/* ================= estado global (XP, contadores, logros) ================= */
+let game = load("tr-game", { pts: 100, xp: 0, best: 0, streak: 0 });
+let counters = load("tr-counters", { fired: 0, quizOk: 0, quizStreak: 0, patOk: 0, reactBest: 0, planDays: 0, lastPlanDay: "", dailyDone: 0 });
+function saveGame(){ save("tr-game", game); save("tr-counters", counters); }
+const LEVELS = [[0,"🐣 Curioso"],[80,"👀 Observador"],[200,"📊 Lector"],[400,"🎯 Francotirador"],[700,"🦈 Tiburón"],[1200,"🏛️ Market Maker"]];
+function levelOf(xp){ let l = LEVELS[0][1]; LEVELS.forEach(([n, name]) => { if (xp >= n) l = name; }); return l; }
+function addXp(n){
+  game.xp += n; saveGame();
+  renderGameStats(); renderHero(); checkAchievements();
+}
+
+const ACHV = [
+  { id:"a1", ic:"🚨", name:"Primera alerta", desc:"Crea tu primera alerta de precio", test: () => alerts.length >= 1 },
+  { id:"a2", ic:"🎯", name:"Francotirador", desc:"Una alerta tuya se dispara", test: () => counters.fired >= 1 },
+  { id:"a3", ic:"🔥", name:"En racha", desc:"Racha de 5 en ¿Sube o Baja?", test: () => game.best >= 5 },
+  { id:"a4", ic:"⚡", name:"Imparable", desc:"Racha de 10 en ¿Sube o Baja?", test: () => game.best >= 10 },
+  { id:"a5", ic:"✨", name:"Calentando", desc:"Consigue 100 XP", test: () => game.xp >= 100 },
+  { id:"a6", ic:"💎", name:"Veterano", desc:"Consigue 500 XP", test: () => game.xp >= 500 },
+  { id:"a7", ic:"📚", name:"Estudioso", desc:"10 respuestas correctas en el quiz", test: () => counters.quizOk >= 10 },
+  { id:"a8", ic:"🎓", name:"Erudito del riesgo", desc:"30 respuestas correctas en el quiz", test: () => counters.quizOk >= 30 },
+  { id:"a9", ic:"🕯️", name:"Ojo de vela", desc:"10 patrones acertados", test: () => counters.patOk >= 10 },
+  { id:"a10", ic:"⚡", name:"Reflejos de acero", desc:"Reacción por debajo de 250 ms", test: () => counters.reactBest > 0 && counters.reactBest < 250 },
+  { id:"a11", ic:"📋", name:"Disciplina", desc:"Completa tu plan del día (1 vez)", test: () => counters.planDays >= 1 },
+  { id:"a12", ic:"🎯", name:"Retador", desc:"Supera 3 desafíos diarios", test: () => counters.dailyDone >= 3 }
+];
+let achvUnlocked = load("tr-achv", {});
+function checkAchievements(){
+  ACHV.forEach(a => {
+    if (!achvUnlocked[a.id] && a.test()){
+      achvUnlocked[a.id] = true;
+      save("tr-achv", achvUnlocked);
+      showToast("🏆 Logro desbloqueado: " + a.name, 3200);
+      confetti(60); playChime();
+      renderAchv();
+    }
+  });
+  renderAchvBar();
+}
+function renderAchv(){
+  const grid = $("#achvGrid"); if (!grid) return;
+  grid.innerHTML = ACHV.map(a => '<div class="achv' + (achvUnlocked[a.id] ? " got" : "") + '"><span class="ic">' + a.ic + '</span><div><b>' + a.name + '</b><span>' + a.desc + '</span></div></div>').join("");
+  renderAchvBar();
+}
+function renderAchvBar(){
+  const n = ACHV.filter(a => achvUnlocked[a.id]).length;
+  $("#achvCount").textContent = n + "/" + ACHV.length;
+  $("#achvBar").style.width = (n/ACHV.length*100) + "%";
+  const h = $("#hAchv"); if (h) h.textContent = n + "/" + ACHV.length;
+}
+
+/* ================= ALERTAS ================= */
+let alerts = load("tr-alerts", []);
+let watch = load("tr-watch", ["BTCUSDT","ETHUSDT","SOLUSDT"]);
+const prices = {}, dayChanges = {};
+let connOK = false;
+const symInput = $("#symInput"), targetInput = $("#targetInput"), dirInput = $("#dirInput");
+const pricePreview = $("#pricePreview"), alertList = $("#alertList"), alertEmpty = $("#alertEmpty");
+
+async function api(url){
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("http " + r.status);
+  return r.json();
+}
+function symbolsNeeded(){
+  const s = new Set(alerts.filter(a => !a.triggered).map(a => a.symbol));
+  watch.forEach(w => s.add(w));
+  const sym = symInput.value.trim().toUpperCase();
+  if (sym.length >= 5) s.add(sym);
+  return [...s];
+}
+async function poll(){
+  const need = symbolsNeeded();
+  try {
+    if (need.length){
+      const arr = await api("https://api.binance.com/api/v3/ticker/price?symbols=" + encodeURIComponent(JSON.stringify(need)));
+      arr.forEach(x => { prices[x.symbol] = +x.price; });
+    }
+    if (watch.length){
+      const arr2 = await api("https://api.binance.com/api/v3/ticker/24hr?symbols=" + encodeURIComponent(JSON.stringify(watch)));
+      arr2.forEach(x => { dayChanges[x.symbol] = +x.priceChangePercent; });
+    }
+    setConn(true);
+  } catch(e){ setConn(false); }
+  renderPreview(); renderAlerts(); renderWatch(); checkAlerts();
+}
+function setConn(ok){
+  if (connOK === ok) return;
+  connOK = ok;
+  const b = $("#connBadge");
+  b.classList.toggle("live", ok);
+  b.innerHTML = "<i></i> " + (ok ? "TRADEROOM · precios en vivo" : "TRADEROOM · sin conexión con Binance");
+}
+function renderPreview(){
+  const sym = symInput.value.trim().toUpperCase();
+  if (sym.length < 5){ pricePreview.textContent = "Escribe un símbolo para ver su precio actual."; pricePreview.classList.remove("err"); return; }
+  if (prices[sym] !== undefined){ pricePreview.classList.remove("err"); pricePreview.textContent = "💹 " + sym + " ahora: " + fmtPrice(prices[sym]); }
+  else if (connOK){ pricePreview.classList.add("err"); pricePreview.textContent = "⚠️ No encuentro «" + esc(sym) + "» en Binance. Prueba con BTCUSDT, ETHUSDT…"; }
+}
+function checkAlerts(){
+  alerts.forEach(a => {
+    if (a.triggered) return;
+    const p = prices[a.symbol];
+    if (p === undefined) return;
+    const hit = a.dir === ">=" ? p >= a.target : p <= a.target;
+    if (hit) fireAlert(a, p);
+  });
+}
+function fireAlert(a, p){
+  a.triggered = true;
+  a.firedAt = Date.now();
+  counters.fired += 1;
+  save("tr-alerts", alerts); saveGame();
+  const msg = a.symbol + " " + a.dir + " " + fmtPrice(a.target) + " (ahora " + fmtPrice(p) + ")";
+  showToast("🚨 ¡ALERTA! " + msg, 8000, true);
+  startAlarm(); flashTitle("¡" + a.symbol + " tocó tu nivel!");
+  notify("🚨 Alerta de TradeRoom", msg);
+  confetti(70); addXp(15);
+  const tab = $('.tab-btn[data-tab="alerts"]');
+  if (tab && !tab.classList.contains("active")) tab.insertAdjacentHTML("afterbegin", '<span class="ping" id="tabPing"></span>');
+  checkDaily("alert");
+  renderAlerts(); renderHero();
+}
+function distanceInfo(a){
+  const p = prices[a.symbol];
+  if (p === undefined) return { txt:"esperando precio…", cls:"" };
+  const dist = a.dir === ">=" ? (a.target - p) / p * 100 : (p - a.target) / p * 100;
+  if (dist <= 0) return { txt:"¡tocando!", cls:"ok" };
+  const t = dist.toFixed(1) + "% " + (a.dir === ">=" ? "por encima" : "por debajo");
+  return { txt: t, cls: dist <= 1.5 ? "near" : "" };
+}
+function renderAlerts(){
+  alertList.innerHTML = alerts.map((a, i) => {
+    if (a.triggered) return '<div class="alert-item triggered"><span class="dir">✅</span><div class="main"><b>' + esc(a.symbol) + '</b><span>objetivo ' + fmtPrice(a.target) + ' · disparada</span></div><div class="alert-actions"><button class="mini-btn" data-react="' + i + '">↺ reactivar</button><button class="mini-btn danger" data-del="' + i + '">borrar</button></div></div>';
+    const d = distanceInfo(a);
+    return '<div class="alert-item"><span class="dir">' + (a.dir === ">=" ? "📈" : "📉") + '</span><div class="main"><b>' + esc(a.symbol) + '</b><span>avísame si ' + (a.dir === ">=" ? "llega a" : "cae a") + ' ' + fmtPrice(a.target) + '</span></div><div class="live"><b>' + fmtPrice(prices[a.symbol]) + '</b><span class="' + d.cls + '">' + d.txt + '</span></div><div class="alert-actions"><button class="mini-btn danger" data-del="' + i + '">borrar</button></div></div>';
+  }).join("");
+  alertEmpty.classList.toggle("hidden", alerts.length > 0);
+  alertList.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { alerts.splice(+b.dataset.del, 1); save("tr-alerts", alerts); playTick(); renderAlerts(); renderHero(); }));
+  alertList.querySelectorAll("[data-react]").forEach(b => b.addEventListener("click", () => { const a = alerts[+b.dataset.react]; if (a){ a.triggered = false; delete a.firedAt; save("tr-alerts", alerts); playPop(); renderAlerts(); renderHero(); } }));
+}
+function addAlert(){
+  const sym = symInput.value.trim().toUpperCase();
+  const target = +targetInput.value;
+  if (sym.length < 5){ showToast("Escribe un símbolo válido (ej. BTCUSDT)."); return; }
+  if (!target || target <= 0){ showToast("Pon un precio objetivo válido."); return; }
+  if (prices[sym] === undefined && connOK){ showToast("Ese símbolo no existe en Binance."); return; }
+  alerts.push({ symbol: sym, dir: dirInput.value, target: target, triggered: false });
+  save("tr-alerts", alerts);
+  targetInput.value = "";
+  playPop(); showToast("🚨 Alerta creada: " + sym);
+  checkAchievements(); checkDaily("alert");
+  renderAlerts(); renderHero(); poll();
+}
+$("#alertAdd")?.addEventListener("click", addAlert);
+targetInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addAlert(); });
+symInput?.addEventListener("input", renderPreview);
+$$(".chip[data-sym]").forEach(c => c.addEventListener("click", () => { symInput.value = c.dataset.sym; renderPreview(); poll(); }));
+
+/* ================= WATCHLIST ================= */
+const watchInput = $("#watchInput"), watchGrid = $("#watchGrid"), watchEmpty = $("#watchEmpty");
+function renderWatch(){
+  watchGrid.innerHTML = watch.map((s, i) => {
+    const ch = dayChanges[s];
+    const chTxt = ch === undefined ? "" : (ch >= 0 ? "+" : "") + ch.toFixed(2) + "%";
+    return '<div class="watch-card"><button class="del-btn" data-wdel="' + i + '" aria-label="Quitar">✕</button><b>' + esc(s.replace("USDT","")) + '<span style="color:var(--muted)">/USDT</span></b><span class="wp">' + fmtPrice(prices[s]) + '</span><span class="wc ' + (ch >= 0 ? "up" : "dn") + '">' + chTxt + ' 24h</span></div>';
+  }).join("");
+  watchEmpty.classList.toggle("hidden", watch.length > 0);
+  watchGrid.querySelectorAll("[data-wdel]").forEach(b => b.addEventListener("click", () => { watch.splice(+b.dataset.wdel, 1); save("tr-watch", watch); playTick(); renderWatch(); }));
+}
+function addWatch(symRaw){
+  const sym = (symRaw !== undefined ? symRaw : watchInput.value).trim().toUpperCase();
+  if (sym.length < 5){ showToast("Escribe un símbolo válido (ej. ADAUSDT)."); return; }
+  if (watch.includes(sym)){ showToast("Ese símbolo ya está en tu lista."); return; }
+  watch.push(sym); save("tr-watch", watch);
+  if (symRaw === undefined){ watchInput.value = ""; watchInput.focus(); }
+  playPop(); renderWatch(); poll();
+}
+$("#watchAdd")?.addEventListener("click", () => addWatch());
+watchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addWatch(); });
+$$(".chip[data-watch]").forEach(c => c.addEventListener("click", () => addWatch(c.dataset.watch)));
+
+/* ================= JUEGO 1: ¿Sube o Baja? ================= */
+let walk = [], result = null, busy = false;
+function seedWalk(){ walk = []; let p = 100; for (let i = 0; i < 42; i++){ p += (Math.random() - 0.5) * 2.2; walk.push(p); } }
+function drawGame(){
+  const c = $("#gameChart"); if (!c) return;
+  const ctx = c.getContext("2d"); if (!ctx) return;
+  const W = c.width, H = c.height;
+  const light = document.documentElement.dataset.theme === "light";
+  ctx.clearRect(0,0,W,H);
+  const min = Math.min(...walk) - 1, max = Math.max(...walk) + 1;
+  const padL = 14, padR = 60, padT = 18, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const X = i => padL + plotW * i / (walk.length - 1);
+  const Y = v => padT + plotH * (1 - (v - min) / (max - min));
+  ctx.strokeStyle = light ? "rgba(19,27,46,.08)" : "rgba(255,255,255,.07)";
+  ctx.lineWidth = 1;
+  for (let g = 0; g < 5; g++){ const y = padT + plotH*g/4; ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke(); }
+  ctx.strokeStyle = light ? "rgba(19,27,46,.4)" : "rgba(255,255,255,.75)";
+  if (result){
+    ctx.lineWidth = 3; ctx.beginPath();
+    for (let i = 0; i < walk.length - result.tail; i++){ const px = X(i), py = Y(walk[i]); i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); }
+    ctx.stroke();
+    ctx.strokeStyle = result.up ? "#43d9b2" : "#ff6b7a";
+    ctx.lineWidth = 4; ctx.beginPath();
+    for (let i = walk.length - result.tail - 1; i < walk.length; i++){ const px = X(i), py = Y(walk[i]); i === walk.length - result.tail - 1 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); }
+    ctx.stroke();
+  } else {
+    ctx.lineWidth = 3; ctx.beginPath();
+    walk.forEach((v, i) => { const px = X(i), py = Y(v); i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); });
+    ctx.stroke();
+  }
+  const lastX = X(walk.length-1), lastY = Y(walk[walk.length-1]);
+  ctx.fillStyle = result ? (result.up ? "#43d9b2" : "#ff6b7a") : "#ffc857";
+  ctx.beginPath(); ctx.arc(lastX, lastY, 6, 0, Math.PI*2); ctx.fill();
+  ctx.font = "600 20px 'JetBrains Mono', monospace";
+  ctx.fillStyle = light ? "#131b2e" : "#cdd6ff";
+  ctx.fillText(fmtPrice(walk[walk.length-1]), Math.min(lastX + 10, W - 58), lastY + 7);
+}
+function renderGameStats(){
+  $("#gPts").textContent = game.pts;
+  $("#gStreak").textContent = game.streak;
+  $("#gXp").textContent = game.xp;
+  $("#gLvl").textContent = levelOf(game.xp);
+}
+function setBusy(b){ busy = b; $("#betUp").disabled = b; $("#betDown").disabled = b; }
+function nextTickValue(p){ return p + (Math.random() - 0.5) * 2.2 + (p > 104 ? -0.5 : p < 96 ? 0.5 : 0); }
+function bet(dir){
+  if (busy) return;
+  setBusy(true); playTick();
+  const tail = 5, steps = [];
+  let p = walk[walk.length-1];
+  for (let i = 0; i < tail; i++){ p = nextTickValue(p); steps.push(p); }
+  const up = steps[steps.length-1] > walk[walk.length-1];
+  let i = 0;
+  const anim = window.setInterval(() => {
+    walk.push(steps[i]); i++;
+    if (walk.length > 60) walk.shift();
+    drawGame();
+    if (i >= steps.length){ window.clearInterval(anim); finishBet(dir, up); }
+  }, 110);
+}
+function finishBet(dir, up){
+  result = { tail: 5, up: up };
+  drawGame();
+  const win = (dir === (up ? "up" : "down"));
+  const msg = $("#gameMsg");
+  if (win){
+    const gain = 10 + game.streak * 2;
+    game.pts += gain; game.streak += 1;
+    game.best = Math.max(game.best, game.streak);
+    msg.textContent = "✅ ¡" + (up ? "Subió" : "Bajó") + " y acertaste! +" + gain + " pts" + (game.streak >= 3 ? " · racha " + game.streak + " 🔥" : "");
+    msg.className = "game-msg win";
+    playPop(); addXp(12);
+    if (game.streak >= 5) checkDaily("streak5");
+    if (game.streak > 0 && game.streak % 5 === 0){ confetti(50); showToast("🔥 ¡Racha de " + game.streak + "!"); }
+  } else {
+    game.pts = Math.max(0, game.pts - 10); game.streak = 0;
+    msg.textContent = "❌ " + (up ? "Subió" : "Bajó") + "… te ha ganado. −10 pts";
+    msg.className = "game-msg lose";
+    playLose(); addXp(2);
+  }
+  saveGame(); renderGameStats(); renderHero();
+  result = null;
+  window.setTimeout(() => { drawGame(); msg.textContent = "¿Y la siguiente? 🎯"; msg.className = "game-msg"; setBusy(false); }, 1400);
+}
+$("#betUp")?.addEventListener("click", () => bet("up"));
+$("#betDown")?.addEventListener("click", () => bet("down"));
+
+/* ================= dibujo de velas (juego 2 + avisos) ================= */
+function drawCandles(ctx, candles, W, H, pad){
+  const light = document.documentElement.dataset.theme === "light";
+  ctx.clearRect(0,0,W,H);
+  const min = Math.min(...candles.map(c => c.l)), max = Math.max(...candles.map(c => c.h));
+  const span = (max - min) || 1;
+  const X = i => pad + (W - 2*pad) * (i + 0.5) / candles.length;
+  const Y = v => (H - pad) - (H - 2*pad) * (v - min) / span + pad*0 - pad;
+  const cw = (W - 2*pad) / candles.length;
+  ctx.strokeStyle = light ? "rgba(19,27,46,.08)" : "rgba(255,255,255,.07)";
+  ctx.lineWidth = 1;
+  for (let g = 0; g < 4; g++){ const y = pad + (H-2*pad)*g/3; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke(); }
+  candles.forEach((cd, i) => {
+    const up = cd.c >= cd.o;
+    const col = up ? "#43d9b2" : "#ff6b7a";
+    const x = X(i);
+    ctx.strokeStyle = col; ctx.lineWidth = Math.max(2, cw*0.08);
+    ctx.beginPath(); ctx.moveTo(x, Y(cd.h)); ctx.lineTo(x, Y(cd.l)); ctx.stroke();
+    ctx.fillStyle = col;
+    const y1 = Y(Math.max(cd.o, cd.c)), y2 = Y(Math.min(cd.o, cd.c));
+    ctx.fillRect(x - cw*0.3, y1, cw*0.6, Math.max(3, y2 - y1));
+  });
+}
+
+/* ================= JUEGO 2: Nombra la vela ================= */
+const PATTERNS = [
+  { name:"Martillo", up:true, meaning:"Mecha larga abajo tras una caída: los vendedores empujaron y perdieron. Posible giro al alza.",
+    candles:[{o:103,c:101.2,h:103.4,l:100.8},{o:101.2,c:99.4,h:101.6,l:99},{o:99.4,c:99.8,h:100,l:94.8},{o:99.8,c:101,h:101.5,l:99.6}] },
+  { name:"Estrella fugaz", up:false, meaning:"Mecha larga arriba tras una subida: los compradores intentaron y fueron rechazados. Posible giro a la baja.",
+    candles:[{o:97,c:99,h:99.5,l:96.8},{o:99,c:100.6,h:101,l:98.8},{o:100.6,c:100.2,h:105.2,l:100},{o:100.2,c:98.8,h:100.6,l:98.5}] },
+  { name:"Envolvente alcista", up:true, meaning:"La vela verde se traga entera a la roja anterior. Los compradores han tomado el mando.",
+    candles:[{o:100,c:101.5,h:102,l:99.6},{o:101.5,c:99,h:101.8,l:98.6},{o:98.6,c:102.6,h:103.2,l:98.2},{o:102.6,c:104,h:104.5,l:102.4}] },
+  { name:"Envolvente bajista", up:false, meaning:"La vela roja se traga entera a la verde anterior. Los vendedores mandan ahora.",
+    candles:[{o:100,c:98.5,h:100.4,l:98},{o:98.5,c:101,h:101.4,l:98.2},{o:101.4,c:97.4,h:101.8,l:96.8},{o:97.4,c:96,h:97.8,l:95.5}] },
+  { name:"Doji", up:true, meaning:"Apertura y cierre casi iguales: indecisión total. En un nivel clave, avisa de posible giro.",
+    candles:[{o:98,c:100.5,h:101,l:97.6},{o:100.5,c:100.7,h:103,l:98.5},{o:100.9,c:103,h:103.6,l:100.4},{o:103,c:104,h:104.5,l:102.6}] },
+  { name:"Marubozu alcista", up:true, meaning:"Vela verde sin mechas: compradores dominando de principio a fin. Fuerza pura.",
+    candles:[{o:98,c:99.2,h:99.4,l:97.8},{o:99.2,c:103.8,h:103.8,l:99.2},{o:103.8,c:104.6,h:105,l:103.5},{o:104.6,c:105.2,h:105.6,l:104.2}] },
+  { name:"Tres soldados", up:true, meaning:"Tres velas verdes seguidas de cuerpo sólido: tendencia alcista arrancando con convicción.",
+    candles:[{o:96,c:97,h:97.4,l:95.6},{o:97.2,c:99.5,h:99.8,l:96.9},{o:99.6,c:101.8,h:102.2,l:99.3},{o:101.9,c:104,h:104.4,l:101.6}] },
+  { name:"Tres cuervos", up:false, meaning:"Tres velas rojas seguidas de cuerpo sólido: presión vendedora sostenida. Cuidado si estás comprado.",
+    candles:[{o:104,c:103,h:104.4,l:102.6},{o:102.8,c:100.5,h:103.1,l:100.2},{o:100.4,c:98.2,h:100.7,l:97.9},{o:98.1,c:96,h:98.4,l:95.6}] }
+];
+let currentPattern = null, patternLock = false;
+function newPattern(){
+  patternLock = false;
+  $("#patternExp").innerHTML = "";
+  const p = PATTERNS[(Math.random()*PATTERNS.length)|0];
+  currentPattern = p;
+  const c = $("#patternChart");
+  const ctx = c.getContext("2d");
+  drawCandles(ctx, p.candles, c.width, c.height, 40);
+  const others = PATTERNS.filter(x => x !== p).sort(() => Math.random()-.5).slice(0,3).map(x => x.name);
+  const opts = [...others, p.name].sort(() => Math.random()-.5);
+  $("#patternOpts").innerHTML = opts.map(o => '<button class="quiz-opt" data-pat="' + esc(o) + '">' + esc(o) + '</button>').join("");
+  $("#patternMsg").textContent = "¿Qué patrón de velas es este?";
+  $("#patternOpts").querySelectorAll("[data-pat]").forEach(b => b.addEventListener("click", () => answerPattern(b)));
+}
+function answerPattern(btn){
+  if (patternLock) return;
+  patternLock = true;
+  const ok = btn.dataset.pat === currentPattern.name;
+  $("#patternOpts").querySelectorAll("[data-pat]").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.pat === currentPattern.name) b.classList.add("good");
+  });
+  if (!ok) btn.classList.add("bad");
+  if (ok){ playPop(); addXp(8); counters.patOk += 1; saveGame(); checkAchievements(); }
+  else playLose();
+  $("#patternExp").innerHTML = '<div class="quiz-exp">💡 <b>' + esc(currentPattern.name) + ":</b> " + esc(currentPattern.meaning) + '</div>';
+  window.setTimeout(newPattern, 2200);
+}
+
+/* ================= JUEGO 3: Reflejos ================= */
+const rx = { state:"idle", timer:0, t0:0 };
+const reflexZone = $("#reflexZone"), reflexMsg = $("#reflexMsg");
+function renderReflexBest(){
+  reflexMsg.textContent = "Mejor marca: " + (counters.reactBest ? counters.reactBest + " ms" : "—");
+}
+reflexZone?.addEventListener("click", () => {
+  if (rx.state === "idle" || rx.state === "done"){
+    rx.state = "wait";
+    reflexZone.className = "reflex-zone wait";
+    reflexZone.innerHTML = '<div><div class="rz-t">Espera al verde…</div><div class="rz-s">no toques todavía 🤫</div></div>';
+    rx.timer = window.setTimeout(() => {
+      rx.state = "go"; rx.t0 = performance.now();
+      reflexZone.className = "reflex-zone go";
+      reflexZone.innerHTML = '<div><div class="rz-t">¡YA! 🟢</div><div class="rz-s">¡PULSA!</div></div>';
+      tone(880, 0, 0.08, 0.1);
+    }, 1500 + Math.random()*2800);
+  } else if (rx.state === "wait"){
+    window.clearTimeout(rx.timer);
+    rx.state = "idle";
+    playLose();
+    reflexZone.className = "reflex-zone idle";
+    reflexZone.innerHTML = '<div><div class="rz-t">😅 Demasiado pronto</div><div class="rz-s">Te has precipitado, como en un FOMO. Pulsa para reintentar y ESPERA al verde.</div></div>';
+  } else if (rx.state === "go"){
+    const ms = Math.round(performance.now() - rx.t0);
+    rx.state = "done";
+    const isBest = !counters.reactBest || ms < counters.reactBest;
+    if (isBest){ counters.reactBest = ms; }
+    let xp = 0, nota = "";
+    if (ms < 200){ xp = 20; nota = "⚡ Nivel robótico"; }
+    else if (ms < 250){ xp = 15; nota = "🔥 Profesional"; }
+    else if (ms < 320){ xp = 10; nota = "💪 Muy bien"; }
+    else if (ms < 400){ xp = 6; nota = "👍 Bien"; }
+    else if (ms < 550){ xp = 3; nota = "🐢 Entrenable"; }
+    else { xp = 1; nota = "😴 ¿Estabas en el juego de verdad?"; }
+    playPop(); addXp(xp);
+    reflexZone.className = "reflex-zone idle";
+    reflexZone.innerHTML = '<div><div class="rz-t">' + ms + ' ms</div><div class="rz-s">' + nota + (isBest ? " · ¡nueva mejor marca! 🏅" : "") + " · +" + xp + " XP. Pulsa para otra ronda.</div></div>";
+    saveGame(); renderReflexBest(); checkAchievements(); checkDaily("reflex300");
+  }
+});
+
+/* ================= JUEGO 4: Quiz ================= */
+const QUIZ = [
+  ["Si tu cuenta tiene 2000 € y arriesgas el 1% por trade, ¿cuánto pierdes como máximo en una operación?", ["20 €","200 €","100 €","El 1% de la operación solo"], 0, "Riesgo del 1% sobre 2000 € = 20 €. Es lo que pierdes si salta tu stop."],
+  ["Una resistencia es…", ["una zona donde el precio ha rebotado hacia abajo","un indicador de volumen","una zona donde el precio siempre sube","un tipo de orden"], 0, "Resistencia = techo donde antes aparecieron vendedores. Soporte = suelo donde aparecieron compradores."],
+  ["¿Qué significa un R:R de 1:3?", ["arriesgas 3 para ganar 1","arriesgas 1 para ganar 3","ganas 3 de cada 4 veces","usas apalancamiento ×3"], 1, "Con R:R 1:3 ganas 3 veces lo que arriesgas. Solo necesitas acertar el 25% de trades para no perder."],
+  ["¿Qué es un stop-loss?", ["una orden que vende automáticamente si el precio va contra ti","una orden para comprar más barato","un impuesto sobre pérdidas","cerrar la plataforma"], 0, "El stop-loss corta la pérdida automáticamente. Es tu seguro: sin él, una sola operación puede arruinar la cuenta."],
+  ["Un martillo (patrón de vela) sugiere…", ["continuación bajista siempre","rechazo de mínimos y posible giro al alza","indecisión total","fin del mercado"], 1, "Mecha larga abajo tras caída = los vendedores empujaron el precio abajo y los compradores lo devolvieron arriba."],
+  ["Para ganar dinero con un 40% de aciertos, necesitas…", ["apalancamiento alto","ganar más en las buenas de lo que pierdes en las malas","muchos trades al día","suerte"], 1, "Con R:R 1:2 (winrate mínimo 33,3%), un 40% de aciertos ya es rentable. Corta pérdidas, deja correr ganancias."],
+  ["¿Qué es el FOMO?", ["un patrón de velas","entrar a un trade por miedo a quedarte fuera","un tipo de cuenta demo","un indicador de tendencia"], 1, "Fear Of Missing Out: ver subir el precio y entrar tarde por impulso. Es una de las causas nº1 de pérdidas."],
+  ["Si pierdes el 50% de tu cuenta, ¿cuánto necesitas ganar para recuperarla?", ["50%","25%","100%","10%"], 2, "De 1000 a 500 pierdes 50%. De 500 a 1000 necesitas +100%. Por eso evitar drawdowns grandes es lo primero."],
+  ["Una ruptura de resistencia con POCO volumen suele ser…", ["muy fiable","una posible ruptura falsa","imposible","una señal de compra doble"], 1, "La fuerza de una ruptura se confirma con volumen. Ruptura floja en volumen = sospecha de trampa."],
+  ["La 'revenge trading' es…", ["operar para recuperar pérdidas a la desesperada","copiar a otros traders","una estrategia de scalping","análisis técnico avanzado"], 0, "Tras una pérdida, el impulso de 'recuperarla ya' lleva a operaciones peores. Mejor: pausa y plan."],
+  ["¿Qué hace una orden LIMIT?", ["entra inmediatamente a mercado","entra solo si el precio llega a tu nivel","cierra todo al final del día","duplica la posición"], 1, "La limit te da el precio que TÚ eliges, o no entra. La market entra ya, pero al precio disponible."],
+  ["En una tendencia alcista sana, los máximos y mínimos son…", ["decrecientes","planos","crecientes","aleatorios"], 2, "Estructura alcista = HH y HL (máximos y mínimos cada vez más altos). Cuando se rompe la estructura, ojo."],
+  ["¿Qué es el apalancamiento ×10?", ["ganas 10 veces más siempre","una caída del 10% del precio liquida tu posición entera","operas 10 activos a la vez","pagas 10 veces más comisión"], 1, "Con ×10, un movimiento del 10% en tu contra = pérdida total de esa posición. Multiplica TODO, riesgo incluido."],
+  ["¿Cuál es la MEJOR forma de no perder todo como principiante?", ["seguir señales de Telegram","riesgo fijo pequeño por trade y stop-loss siempre","apalancarse cuando estás seguro","hacer muchos trades"], 1, "Supervivencia primero: riesgo del 1% + stop siempre = puedes fallar muchas veces y seguir aprendiendo."],
+  ["Un doji es una vela de…", ["gran fuerza compradora","indecisión (apertura ≈ cierre)","pánico vendedor","ruptura garantizada"], 1, "El doji muestra empate entre compradores y vendedores. En un nivel clave tras tendencia, puede anunciar giro."],
+  ["¿Cuándo tiene MÁS validez un patrón de velas?", ["en cualquier parte del gráfico","en niveles de soporte/resistencia o tras tendencia","de madrugada","en temporalidades de 1 segundo"], 1, "El contexto manda: un martillo en soporte tras caída vale oro; el mismo martillo en mitad del rango no vale nada."],
+  ["El 'overtrading' es…", ["operar demasiado por aburrimiento o ansiedad","usar mucho apalancamiento","operar varias cuentas","un tipo de gráfico"], 0, "Operar por operar quema cuenta vía comisiones y malas entradas. Si no hay setup, no hay trade. (Para eso está el arcade 🎮)"],
+  ["¿Qué debes definir ANTES de entrar en una operación?", ["solo el precio de entrada","entrada, stop, objetivo y cantidad de riesgo","solo el objetivo","nada, se improvisa"], 1, "Un trade profesional nace con plan: entro aquí, me equivoco aquí, gano aquí, arriesgo tanto."],
+  ["Tres velas verdes seguidas de cuerpo sólido se llaman…", ["tres cuervos","tres soldados","triángulo ascendente","bandera alcista"], 1, "Los 'tres soldados blancos' muestran presión compradora sostenida. Los 'tres cuervos negros' son su versión bajista."],
+  ["¿Por qué es peligroso mover el stop-loss más lejos cuando el precio va en contra?", ["porque el bróker cobra más","porque conviertes una pérdida pequeña planeada en una catástrofe","porque se cancela la operación","no es peligroso"], 1, "Alejar el stop es negarte a aceptar la pérdida pequeña. El mercado no te debe nada; el stop se respeta."],
+  ["El winrate mínimo para ser rentable con R:R 1:2 es…", ["50%","más del 33,3%","más del 66,6%","10%"], 1, "Winrate mínimo = 1/(1+R) = 1/3 ≈ 33,3%. Acertando más de 1 de cada 3 trades, no pierdes dinero."],
+  ["¿Qué es mejor como principiante: cuenta real o cuenta demo?", ["real siempre, así aprendes","demo hasta tener un plan rentable, luego real pequeña","da igual","ninguna, solo cursos"], 1, "La demo entrena mecánica sin quemar dinero. Cuando tu plan funcione 2-3 meses en demo, pasa a real con poco."],
+  ["Un 'drawdown' es…", ["una comisión del bróker","la caída de tu cuenta desde un máximo hasta un mínimo","un tipo de vela","retirar dinero"], 1, "El drawdown mide cuánto sangra tu cuenta en las malas rachas. Controlar el riesgo por trade lo mantiene soportable."],
+  ["¿Qué indica una mecha larga superior tras una gran subida?", ["que seguirá subiendo sin duda","posible agotamiento: los compradores fueron rechazados arriba","volumen alto garantizado","un error del gráfico"], 1, "Como la estrella fugaz: el precio atacó máximos y no pudo sostenerse. Puede anunciar giro o pausa."]
+];
+let quizOrder = [], quizPos = 0, quizLock = false, quizAnswered = 0;
+function shuffleQuiz(){
+  quizOrder = QUIZ.map((_, i) => i).sort(() => Math.random() - .5);
+  quizPos = 0;
+}
+function renderQuiz(){
+  quizLock = false;
+  $("#quizExp").innerHTML = "";
+  $("#quizNext").classList.add("hidden");
+  if (quizPos >= quizOrder.length) shuffleQuiz();
+  const q = QUIZ[quizOrder[quizPos]];
+  $("#quizQ").textContent = q[0];
+  $("#quizCount").textContent = "Pregunta " + (quizAnswered + 1) + " · ronda infinita";
+  $("#quizOk").textContent = "✓ " + counters.quizOk + " correctas";
+  const opts = q[1].map((o, i) => ({ o, i })).sort(() => Math.random() - .5);
+  $("#quizOpts").innerHTML = opts.map(x => '<button class="quiz-opt" data-qz="' + x.i + '">' + esc(x.o) + '</button>').join("");
+  $("#quizOpts").querySelectorAll("[data-qz]").forEach(b => b.addEventListener("click", () => answerQuiz(b, q)));
+}
+function answerQuiz(btn, q){
+  if (quizLock) return;
+  quizLock = true;
+  const chosen = +btn.dataset.qz;
+  const ok = chosen === q[2];
+  $("#quizOpts").querySelectorAll("[data-qz]").forEach(b => {
+    b.disabled = true;
+    if (+b.dataset.qz === q[2]) b.classList.add("good");
+  });
+  if (ok){
+    playPop(); counters.quizOk += 1; counters.quizStreak += 1; addXp(10);
+    if (counters.quizStreak >= 3) checkDaily("quiz3");
+  } else {
+    btn.classList.add("bad"); playLose(); counters.quizStreak = 0; addXp(1);
+  }
+  quizAnswered += 1; quizPos += 1;
+  saveGame();
+  $("#quizExp").innerHTML = '<div class="quiz-exp">💡 ' + esc(q[3]) + '</div>';
+  $("#quizNext").classList.remove("hidden");
+  $("#quizOk").textContent = "✓ " + counters.quizOk + " correctas";
+  checkAchievements();
+}
+$("#quizNext")?.addEventListener("click", () => { playTick(); renderQuiz(); });
+
+/* ================= sub-navegación del arcade ================= */
+$$("#panel-arcade .game-nav .chip").forEach(c => c.addEventListener("click", () => {
+  playTick();
+  $$("#panel-arcade .game-nav .chip").forEach(x => x.classList.toggle("active", x === c));
+  $$("#panel-arcade .game-panel").forEach(p => p.classList.toggle("show", p.id === "game-" + c.dataset.game));
+  if (c.dataset.game === "updown") drawGame();
+  if (c.dataset.game === "pattern" && !currentPattern) newPattern();
+}));
+
+/* ================= desafío diario ================= */
+const DAILIES = [
+  { id:"streak5", desc:"Consigue una racha de 5 aciertos seguidos en ¿Sube o Baja?" },
+  { id:"quiz3", desc:"Responde 3 preguntas del quiz seguidas correctamente" },
+  { id:"reflex300", desc:"Baja de los 300 ms en Reflejos de trader" },
+  { id:"alert", desc:"Crea o reactiva una alerta de precio" },
+  { id:"plan", desc:"Completa tu plan del día entero" }
+];
+let daily = load("tr-daily", { date: "", id: "", done: false });
+(function initDaily(){
+  const today = iso(new Date());
+  if (daily.date !== today){
+    const seed = [...today].reduce((a, c) => a + c.charCodeAt(0), 0);
+    daily = { date: today, id: DAILIES[seed % DAILIES.length].id, done: false };
+    save("tr-daily", daily);
+  }
+  renderDaily();
+})();
+function renderDaily(){
+  const d = DAILIES.find(x => x.id === daily.id) || DAILIES[0];
+  $("#dailyDesc").textContent = d.desc;
+  const done = daily.done;
+  $("#dailyCard").classList.toggle("done", done);
+  $("#dailyState").innerHTML = done ? "✅ Superado · +50 XP" : "50 XP de premio";
+}
+function checkDaily(id){
+  if (daily.done || daily.id !== id) return;
+  daily.done = true;
+  save("tr-daily", daily);
+  counters.dailyDone += 1;
+  addXp(50);
+  showToast("🎯 ¡Desafío diario superado! +50 XP", 3500);
+  confetti(80); playChime();
+  renderDaily(); checkAchievements();
+}
+
+/* ================= PLAN DEL DÍA ================= */
+let plan = load("tr-plan", { date: "", items: [] });
+if (plan.date !== iso(new Date())) plan = { date: iso(new Date()), items: plan.items.map(i => ({ text: i.text, done: false })) };
+const planList = $("#planList"), planInput = $("#planInput"), planEmpty = $("#planEmpty");
+function savePlan(){ save("tr-plan", plan); }
+function renderPlan(){
+  planList.innerHTML = plan.items.map((t, i) => '<div class="task-item' + (t.done ? " done" : "") + '"><input type="checkbox" class="check-box" data-i="' + i + '"' + (t.done ? " checked" : "") + ' aria-label="Marcar"><span class="txt">' + esc(t.text) + '</span><button class="del-btn" data-i="' + i + '" aria-label="Eliminar">✕</button></div>').join("");
+  planEmpty.classList.toggle("hidden", plan.items.length > 0);
+  planList.querySelectorAll(".check-box").forEach(cb => cb.addEventListener("change", () => {
+    const t = plan.items[+cb.dataset.i]; if (!t) return;
+    t.done = cb.checked;
+    if (t.done) playPop();
+    if (t.done && plan.items.length && plan.items.every(x => x.done)){
+      showToast("📋 ¡Plan del día completado! A operar con disciplina 🫡");
+      confetti(80);
+      if (counters.lastPlanDay !== iso(new Date())){
+        counters.lastPlanDay = iso(new Date());
+        counters.planDays += 1;
+        addXp(25);
+        checkDaily("plan");
+      }
+      checkAchievements();
+    }
+    savePlan(); renderPlan();
+  }));
+  planList.querySelectorAll(".del-btn").forEach(b => b.addEventListener("click", () => { plan.items.splice(+b.dataset.i, 1); playTick(); savePlan(); renderPlan(); }));
+}
+function addPlanItem(text){
+  const v = (text !== undefined ? text : planInput.value).trim();
+  if (!v) return;
+  plan.items.push({ text: v, done: false });
+  if (text === undefined){ planInput.value = ""; planInput.focus(); }
+  playTick(); savePlan(); renderPlan();
+}
+$("#planAdd")?.addEventListener("click", () => addPlanItem());
+planInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addPlanItem(); });
+$$(".chip[data-plan]").forEach(c => c.addEventListener("click", () => addPlanItem(c.dataset.plan)));
+
+/* ================= HERRAMIENTAS ================= */
+function calcPosition(){
+  const cap = +$("#posCap").value || 0, risk = +$("#posRisk").value || 1;
+  const entry = +$("#posEntry").value || 0, stop = +$("#posStop").value || 0;
+  const out = $("#posOut");
+  if (cap <= 0 || entry <= 0 || stop <= 0 || entry === stop){ out.innerHTML = "Rellena capital, entrada y stop (distintos) para calcular."; return; }
+  const riskEur = cap * risk / 100;
+  const dist = Math.abs(entry - stop);
+  const units = riskEur / dist;
+  const total = units * entry;
+  out.innerHTML = "💰 Riesgo máximo: <b>" + riskEur.toFixed(2) + " €</b>\n📏 Distancia al stop: " + fmtPrice(dist) + " (" + (dist/entry*100).toFixed(2) + "%)\n📦 Tamaño de la posición: <b>" + units.toFixed(6) + " unidades</b>\n🧾 Valor total: ≈ " + fmtMoney(total) + (total > cap ? '\n<span class="warn">⚠ Supera tu capital: necesitarías apalancamiento (¡con cuidado!) o un riesgo menor</span>' : "");
+}
+["posCap","posRisk","posEntry","posStop"].forEach(id => $("#"+id)?.addEventListener("input", calcPosition));
+function calcRR(){
+  const e = +$("#rrEntry").value || 0, s = +$("#rrStop").value || 0, t = +$("#rrTarget").value || 0;
+  const dir = $("#rrDir").value;
+  const out = $("#rrOut");
+  const risk = dir === "long" ? e - s : s - e;
+  const reward = dir === "long" ? t - e : e - t;
+  if (e <= 0 || s <= 0 || t <= 0 || risk <= 0){ out.innerHTML = "Con esa dirección, revisa los números: el stop debe estar " + (dir === "long" ? "por debajo" : "por encima") + " de la entrada."; return; }
+  if (reward <= 0){ out.innerHTML = '<span class="bad">❌ El objetivo queda en dirección contraria a tu trade.</span>'; return; }
+  const rr = reward / risk;
+  const minWr = 100 / (1 + rr);
+  let veredicto, cls;
+  if (rr >= 2){ veredicto = "🟢 Excelente: con este R:R aguantas muchas pérdidas."; cls = ""; }
+  else if (rr >= 1){ veredicto = "🟡 Aceptable, pero exige acertar a menudo."; cls = "warn"; }
+  else { veredicto = "🔴 Malo: arriesgas más de lo que puedes ganar."; cls = "bad"; }
+  out.innerHTML = "📉 Riesgo por unidad: " + fmtPrice(risk) + " · 📈 Beneficio potencial: " + fmtPrice(reward) + "\n⚖️ Ratio R:R = <b>1:" + rr.toFixed(2) + "</b>\n🎯 Winrate mínimo para no perder: <b>" + minWr.toFixed(0) + "%</b>\n<span class='" + cls + "'>" + veredicto + "</span>";
+}
+["rrEntry","rrStop","rrTarget","rrDir"].forEach(id => $("#"+id)?.addEventListener("input", calcRR));
+function drawCompound(){
+  const cap = +$("#ciCap").value || 0, add = +$("#ciAdd").value || 0;
+  const rate = (+$("#ciRate").value || 0) / 100, years = Math.max(1, +$("#ciYears").value || 5);
+  const c = $("#compoundChart"); if (!c) return;
+  const ctx = c.getContext("2d"); if (!ctx) return;
+  const light = document.documentElement.dataset.theme === "light";
+  const months = years * 12;
+  const pts = [cap]; let v = cap;
+  for (let m = 1; m <= months; m++){ v = v * (1 + rate) + add; pts.push(v); }
+  const W = c.width, H = c.height, padL = 50, padR = 14, padT = 12, padB = 22;
+  ctx.clearRect(0,0,W,H);
+  const max = Math.max(...pts) * 1.03;
+  const X = i => padL + (W - padL - padR) * i / (pts.length - 1);
+  const Y = val => padT + (H - padT - padB) * (1 - val / max);
+  ctx.strokeStyle = light ? "rgba(19,27,46,.12)" : "rgba(255,255,255,.1)";
+  ctx.fillStyle = light ? "rgba(19,27,46,.5)" : "rgba(255,255,255,.4)";
+  ctx.font = "16px 'JetBrains Mono', monospace";
+  ctx.lineWidth = 1;
+  for (let g = 0; g <= 3; g++){
+    const val = max * g / 3, y = Y(val);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillText(fmtMoney(val), 2, y + 5);
+  }
+  const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
+  grad.addColorStop(0, "rgba(67,217,178,.35)"); grad.addColorStop(1, "rgba(67,217,178,0)");
+  ctx.beginPath();
+  pts.forEach((p, i) => { i === 0 ? ctx.moveTo(X(i), Y(p)) : ctx.lineTo(X(i), Y(p)); });
+  ctx.lineTo(X(pts.length-1), H - padB); ctx.lineTo(X(0), H - padB); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.beginPath();
+  pts.forEach((p, i) => { i === 0 ? ctx.moveTo(X(i), Y(p)) : ctx.lineTo(X(i), Y(p)); });
+  ctx.strokeStyle = "#43d9b2"; ctx.lineWidth = 3; ctx.stroke();
+  const invested = cap + add * months;
+  $("#ciOut").innerHTML = "📥 Total invertido: " + fmtMoney(invested) + "\n🚀 Valor final tras " + years + " años: <b>" + fmtMoney(v) + "</b>\n💚 Ganancia: <b>" + fmtMoney(v - invested) + "</b>";
+}
+["ciCap","ciAdd","ciRate","ciYears"].forEach(id => $("#"+id)?.addEventListener("input", drawCompound));
+
+/* ================= pestañas + hero ================= */
+$$(".tab-btn").forEach(b => b.addEventListener("click", () => {
+  playTick();
+  $$(".tab-btn").forEach(x => x.classList.toggle("active", x === b));
+  $$(".panel").forEach(p => p.classList.toggle("show", p.id === "panel-" + b.dataset.tab));
+  $("#tabPing")?.remove();
+  if (b.dataset.tab === "arcade") drawGame();
+  if (b.dataset.tab === "tools") drawCompound();
+}));
+function renderHero(){
+  $("#hAlerts").textContent = alerts.filter(a => !a.triggered).length;
+  $("#hXp").textContent = game.xp;
+  $("#hPts").textContent = game.pts;
+  $("#hBest").textContent = game.best;
+  renderAchvBar();
+}
+
+/* ================= arranque ================= */
+seedWalk();
+renderAlerts(); renderWatch(); renderPlan(); renderGameStats(); renderHero(); drawGame();
+renderAchv(); renderReflexBest();
+shuffleQuiz(); renderQuiz(); newPattern();
+calcPosition(); calcRR(); drawCompound();
+poll();
+window.setInterval(poll, 5000);
+window.addEventListener("resize", () => { drawGame(); if (currentPattern){ const c = $("#patternChart"); drawCandles(c.getContext("2d"), currentPattern.candles, c.width, c.height, 40); } drawCompound(); });
+</script>
+</body>
+</html>
