@@ -348,7 +348,7 @@ def informe(nombre, activo, velas, m, problemas, avisos):
     print(f"  Rentabilidad simulada.. {m['ret_pct']:+.1f}%   (comprar y mantener: {m['buyhold_pct']:+.1f}%)")
     print(f"  Expectativa/trade...... {m['expect_pts']:+.2f} pts")
     print(f"  Drawdown máximo........ {m['mdd']:.1f}%   (peor racha: {m['max_racha_neg']} "
-          f"{'pérdida' if m['max_racha_neg'] == 1 else 'pérdidas'} seguidas)")
+          f"{'pérdida seguida' if m['max_racha_neg'] == 1 else 'pérdidas seguidas'})")
     print(f"  Sharpe (anualizado).... {m['sharpe']:.2f}")
     print(f"  Cierres: SL {m['sl_count']} · TP {m['tp_count']} · señal contraria {m['sena_count']}")
     print()
