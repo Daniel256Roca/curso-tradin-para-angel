@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🧪 Probador de Estrategias Algorítmicas — backtest + anti-sobreajuste, en tu navegador</title>
+<style>
+  :root{
+    --bg:#07070d; --bg2:#0d0d1a; --card:#121222; --card2:#16162a; --line:#262645;
+    --txt:#e8ecff; --mut:#8a8fbf; --acc:#7c8cff; --acc2:#ffc857;
+    --ok:#43d9b2; --warn:#ffc054; --bad:#ff6b7a; --pur:#c084fc;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;
+       background-image:radial-gradient(ellipse 60% 40% at 80% -10%,rgba(124,140,255,.12),transparent),
+                        radial-gradient(ellipse 50% 30% at 10% 110%,rgba(255,200,87,.08),transparent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+  header.hero{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+    background:linear-gradient(120deg,#141430,#1a1030);border:1px solid var(--line);border-radius:20px;
+    padding:22px 26px;margin-bottom:20px}
+  .hero h1{font-size:1.5rem;letter-spacing:.3px}
+  .hero h1 .grad{background:linear-gradient(90deg,#7c8cff,#c084fc,#ffc857);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--mut);font-size:.88rem;margin-top:6px;max-width:640px}
+  .pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{background:#00000030;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:.75rem;color:var(--acc2)}
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:18px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:18px}
+  .card h2{font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  label{display:block;font-size:.75rem;color:var(--mut);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.8px}
+  select,input[type=file]{width:100%;background:#00000035;border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;padding:10px;font-size:.9rem}
+  textarea{width:100%;min-height:330px;background:#00000045;border:1px solid var(--line);color:#d6e0ff;
+    border-radius:12px;padding:12px;font-family:'JetBrains Mono',Consolas,monospace;font-size:.8rem;line-height:1.5;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;width:100%;cursor:pointer;
+    background:linear-gradient(120deg,#7c8cff,#9a6cff);color:#fff;border:0;border-radius:12px;
+    padding:14px;font-size:1rem;font-weight:700;letter-spacing:.4px;transition:transform .12s, filter .12s}
+  .btn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.1)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.sec{background:#1c1c38;border:1px solid var(--line);font-weight:600;font-size:.85rem;padding:10px}
+  .status{margin-top:12px;background:#00000035;border:1px dashed var(--line);border-radius:10px;
+    padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--mut);
+    min-height:44px;white-space:pre-wrap}
+  .filebtn{display:block;text-align:center;font-size:.78rem;color:var(--acc);cursor:pointer;margin-top:8px;
+    border:1px dashed var(--line);border-radius:10px;padding:9px;background:#00000020}
+  .filebtn:hover{background:#00000040}
+  /* resultados */
+  #resultados{display:none}
+  .verdict{border-radius:16px;padding:18px 22px;margin-bottom:18px;font-weight:700;font-size:1.1rem;
+    display:flex;gap:12px;align-items:center;border:1px solid var(--line)}
+  .v-ok{background:linear-gradient(120deg,#0d2b22,#122016);border-color:#1f5c46;color:#7bf0c8}
+  .v-warn{background:linear-gradient(120deg,#2b220d,#201a12);border-color:#5c4a1f;color:#ffd98a}
+  .v-bad{background:linear-gradient(120deg,#2b0d12,#201214);border-color:#5c1f28;color:#ff9aa6}
+  .v-info{background:linear-gradient(120deg,#141430,#101025)}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+  .mcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .mcard b{display:block;font-size:1.25rem;margin-top:2px}
+  .mcard span{font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.7px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .acc{color:var(--acc)} .pur{color:var(--pur)}
+  .issue{border-left:4px solid var(--bad);background:#1d1015;border-radius:10px;padding:10px 14px;margin:8px 0;font-size:.86rem}
+  .issue.amber{border-color:var(--warn);background:#1d1810}
+  .issue.blue{border-color:var(--acc);background:#101325}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--mut);font-size:.68rem;text-transform:uppercase;letter-spacing:.7px}
+  .tag{display:inline-block;border-radius:99px;padding:2px 10px;font-size:.7rem;font-weight:700}
+  .t-ok{background:#0d2b22;color:#7bf0c8}.t-warn{background:#2b220d;color:#ffd98a}.t-bad{background:#2b0d12;color:#ff9aa6}
+  canvas{width:100%;background:#00000030;border:1px solid var(--line);border-radius:12px}
+  details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-top:16px}
+  summary{cursor:pointer;font-weight:700;color:var(--acc)}
+  details p, details li{color:var(--mut);font-size:.85rem;line-height:1.6}
+  details code{color:var(--acc2);background:#00000040;border-radius:6px;padding:1px 6px;font-size:.78rem}
+  details pre{background:#00000045;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;
+    font-size:.76rem;color:#d6e0ff;margin:10px 0}
+  .mini{font-size:.72rem;color:var(--mut);margin-top:6px}
+  .kbd{font-family:'JetBrains Mono',monospace;background:#00000045;border:1px solid var(--line);
+    border-radius:6px;padding:1px 7px;font-size:.76rem;color:#d6e0ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <h1>🧪 <span class="grad">Probador de Estrategias Algorítmicas</span></h1>
+      <p>Sube tu estrategia en <b style="color:var(--acc2)">Python</b>, corremos el backtest con <b>datos reales</b>
+         (oro, DAX, Nasdaq, SP500, EURUSD, GBPUSD) y te decimos si es rentable, qué problemas tiene y
+         <b>si está sobreoptimizada</b>. Todo corre en TU navegador (Python real vía Pyodide) — nada se sube a ningún servidor. 😈</p>
+    </div>
+    <div class="pills">
+      <span class="pill">⚡ backtest real</span>
+      <span class="pill">🛡️ anti-sobreajuste 70/30</span>
+      <span class="pill">🎛️ sensibilidad ±25%</span>
+      <span class="pill">🔒 100% local</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- ============ CONFIG ============ -->
+    <section>
+      <div class="card">
+        <h2>⚙️ 1 · Datos</h2>
+        <label>Activo</label>
+        <select id="activo">
+          <option value="oro">🥇 Oro (GC=F)</option>
+          <option value="plata">🥈 Plata (SI=F)</option>
+          <option value="dax">🇩🇪 DAX (^GDAXI)</option>
+          <option value="nasdaq">🇺🇸 Nasdaq 100 (^NDX)</option>
+          <option value="sp500">🇺🇸 S&P 500 (^GSPC)</option>
+          <option value="eurusd">💶 EURUSD</option>
+          <option value="gbpusd">💷 GBPUSD</option>
+        </select>
+        <label>Histórico (velas diarias)</label>
+        <select id="periodo">
+          <option value="1y">1 año</option>
+          <option value="2y" selected>2 años</option>
+          <option value="5y">5 años</option>
+          <option value="10y">10 años (lento 🐢)</option>
+          <option value="max">máximo (muy lento 🐢🐢)</option>
+        </select>
+        <div class="mini">— o mejor aún, tus propios datos MT5/TradingView: —</div>
+        <input type="file" id="csvfile" accept=".csv,text/csv">
+        <div class="mini">CSV con columnas <span class="kbd">date,open,high,low,close</span> (también admite
+          <span class="kbd">fecha/apertura/alto/bajo/cierre</span> y decimales con coma).</div>
+      </div>
+
+      <div class="card">
+        <h2>🐍 2 · Tu estrategia (Python)</h2>
+        <textarea id="codigo" spellcheck="false"># mi_estrategia.py — cruce EMA con stop/objetivo por ATR
+# Los parámetros en MAYÚSCULAS se mueven ±25% en el test anti-sobreajuste.
+PERIODO_RAPIDA = 9
+PERIODO_LENTA  = 21
+STOP_ATR   = 2.0      # stop = 2 × ATR(14)   (o STOP_PIPS = 30)
+TAKE_ATR   = 3.0      # objetivo = 3 × ATR   (o TAKE_PIPS = 60)
+RIESGO_PCT = 1.0      # % de cuenta en riesgo por operación
+
+def senal(i, velas):
+    # velas[i] = {"fecha","o","h","l","c"} — solo mira velas[:i+1] (el pasado)
+    if i < PERIODO_LENTA + 5:
+        return 0
+    cierres = [v["c"] for v in velas]
+    ra, la = ema(cierres[:-1], PERIODO_RAPIDA), ema(cierres[:-1], PERIODO_LENTA)
+    rb, lb = ema(cierres, PERIODO_RAPIDA),      ema(cierres, PERIODO_LENTA)
+    if ra <= la and rb > lb:  return 1    # cruce al alza  → comprar
+    if ra >= la and rb < lb:  return -1   # cruce a la baja → vender
+    return 0</textarea>
+        <label class="filebtn" for="pyfile">📂 …o sube tu archivo .py</label>
+        <input type="file" id="pyfile" accept=".py,.txt" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <button class="btn sec" id="btnDemo">🔄 restaurar demo</button>
+          <button class="btn sec" id="btnPlantilla">📋 info &amp; funciones</button>
+        </div>
+      </div>
+
+      <button class="btn" id="btnRun">🚀 3 · PROBAR ESTRATEGIA</button>
+      <div class="status" id="status">Listo. Pulsa el botón y deja que el juez hable. ⚖️</div>
+    </section>
+
+    <!-- ============ RESULTADOS ============ -->
+    <section id="resultados">
+      <div class="verdict v-info" id="verdict">…</div>
+
+      <div class="card">
+        <h2>📊 Números del backtest</h2>
+        <div class="metrics" id="metrics"></div>
+        <div class="mini" id="metricsSub"></div>
+      </div>
+
+      <div class="card">
+        <h2>📈 Curva de equity (riesgo % compuesto, base 100)</h2>
+        <canvas id="equity" width="940" height="260"></canvas>
+      </div>
+
+      <div class="card" id="problemasCard">
+        <h2>🚨 Problemas y avisos</h2>
+        <div id="problemas"></div>
+      </div>
+
+      <div class="card" id="overfitCard">
+        <h2>🛡️ Control anti-sobreajuste</h2>
+        <div id="blindtest"></div>
+        <div id="sensibilidad"></div>
+        <h2 style="margin-top:16px">💊 Qué ajustar (y qué NO tocar)</h2>
+        <div id="receta"></div>
+      </div>
+
+      <div class="card">
+        <h2>🧾 Últimas operaciones</h2>
+        <table><thead><tr><th>Entrada</th><th>Salida</th><th>Dirs.</th><th>Puntos</th><th>P&amp;L equity</th><th>Motivo</th></tr></thead>
+        <tbody id="tablaTrades"></tbody></table>
+      </div>
+    </section>
+  </div>
+
+  <details id="ayuda">
+    <summary>📚 Cómo funciona el probador, qué funciones tienes gratis y cómo evitar el sobreajuste</summary>
+    <div style="padding-top:10px">
+      <p><b>Tu contrato:</b> define <code>def senal(i, velas)</code> que devuelva <code>1</code> (comprar),
+      <code>-1</code> (vender) o <code>0</code> (nada). La entrada se ejecuta en la <b>apertura de la vela
+      siguiente</b>: imposible hacer trampas mirando el futuro. Opcional: <code>STOP_PIPS</code> / <code>STOP_ATR</code>,
+      <code>TAKE_PIPS</code> / <code>TAKE_ATR</code>, <code>RIESGO_PCT</code>.</p>
+      <p style="margin-top:8px"><b>Funciones gratuitas</b> (úsalas directo en tu código):
+      <code>ema(valores, n)</code>, <code>sma(valores, n)</code>, <code>rsi(valores, 14)</code>,
+      <code>atr(velas, 14)</code>, <code>maximo(velas, n)</code>, <code>minimo(velas, n)</code>.</p>
+      <p style="margin-top:8px"><b>Gestión:</b> una posición a la vez; dentro de la vela se evalúa primero el STOP
+      (pesimista, como debe ser); el spread típico del activo ya está descontado; la equity usa tu
+      <code>RIESGO_PCT</code> compuesto operación a operación.</p>
+      <p style="margin-top:8px"><b>Anti-sobreajuste:</b> (1) <b>prueba ciega 70/30</b> — si solo funciona en el 70%
+      antiguo, tu sistema se sabe el pasado de memoria; (2) <b>sensibilidad ±25%</b> — cada parámetro tuyo en
+      MAYÚSCULAS se mueve y se re-corre el backtest: <span class="tag t-bad">FRÁGIL</span> = solo gana en tu punto
+      exacto (sobreoptimización), <span class="tag t-warn">sensible</span> = toléralo con cuidado,
+      <span class="tag t-ok">estable</span> = no lo toques más.</p>
+      <p style="margin-top:8px"><b>Regla de oro:</b> la meta no es el backtest más alto, es la <b>meseta</b> donde
+      todo el entorno (±25%, otra época, otro activo similar) sigue ganando. El máximo del backtest siempre es
+      el punto más sobreajustado. Después: forward-test en demo 2-3 meses antes de soltar un euro real.</p>
+    </div>
+  </details>
+  <p class="mini" style="text-align:center;margin-top:18px">Datos: Yahoo Finance vía proxy CORS · Velas diarias ·
+     Python ejecutándose localmente con Pyodide · Tu código nunca sale del navegador 🔒</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+"use strict";
+/* ================= MOTOR PYTHON (se ejecuta en Pyodide, dentro del navegador) ================= */
+/* === ENGINE START === */
+const PY_ENGINE = String.raw`
+import csv, io, json, math, statistics
+
+# ---------- indicadores gratuitos para la estrategia ----------
+def ema(valores, periodo):
+    if len(valores) < periodo:
+        return valores[-1] if valores else 0.0
+    k = 2 / (periodo + 1)
+    e = sum(valores[:periodo]) / periodo
+    for v in valores[periodo:]:
+        e = v * k + e * (1 - k)
+    return e
+
+def sma(valores, periodo):
+    if len(valores) < periodo or periodo <= 0:
+        return valores[-1] if valores else 0.0
+    return sum(valores[-periodo:]) / periodo
+
+def rsi(valores, periodo=14):
+    if len(valores) <= periodo:
+        return 50.0
+    gan, per = [], []
+    for a, b in zip(valores[-periodo-1:-1], valores[-periodo:]):
+        d = b - a
+        gan.append(max(d, 0)); per.append(max(-d, 0))
+    ag = sum(gan) / periodo; ap = sum(per) / periodo
+    if ap == 0: return 100.0
+    return 100 - 100 / (1 + ag / ap)
+
+def atr(velas, periodo=14):
+    if len(velas) <= periodo:
+        periodo = max(1, len(velas) - 1)
+    trs = []
+    tramo = velas[-periodo-1:]
+    for j in range(1, len(tramo)):
+        h, l, pc = tramo[j]["h"], tramo[j]["l"], tramo[j-1]["c"]
+        trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+    return sum(trs) / len(trs) if trs else 1e-9
+
+def maximo(velas, periodo, campo="h"):
+    return max(v[campo] for v in velas[-periodo:])
+
+def minimo(velas, periodo, campo="l"):
+    return min(v[campo] for v in velas[-periodo:])
+
+# ---------- datos ----------
+def parse_csv(txt):
+    velas = []
+    lector = csv.DictReader(io.StringIO(txt))
+    cols = { (c or "").strip().lower(): c for c in (lector.fieldnames or []) }
+    def col(*nombres):
+        for n in nombres:
+            if n in cols: return cols[n]
+        return None
+    cf = col("fecha","date","time"); co = col("open","o","apertura")
+    ch = col("high","h","max","alto"); cl = col("low","l","min","bajo")
+    cc = col("close","c","cierre","last")
+    if not cc: raise ValueError("CSV sin columna close/cierre")
+    for fila in lector:
+        try:
+            c = float((fila[cc] or "").replace(",", "."))
+            if c <= 0: continue
+            o = float((fila[co] or str(c)).replace(",", ".")) if co else c
+            h = float((fila[ch] or str(c)).replace(",", ".")) if ch else c
+            l = float((fila[cl] or str(c)).replace(",", ".")) if cl else c
+            velas.append({"fecha": ((fila[cf] or "") if cf else "")[:10], "o": o, "h": h, "l": l, "c": c})
+        except (ValueError, TypeError):
+            continue
+    return velas
+
+# ---------- motor ----------
+def ejecutar_backtest(velas, senal, cfg, spread):
+    n = len(velas); warm = min(60, n // 5)
+    riesgo = cfg.get("RIESGO_PCT", 1.0) / 100.0
+    stop_p, take_p = cfg.get("STOP_PIPS"), cfg.get("TAKE_PIPS")
+    stop_a, take_a = cfg.get("STOP_ATR"), cfg.get("TAKE_ATR")
+    trades, senal_prev, pos = [], 0, None
+    for i in range(warm, n):
+        try: s = senal(i, velas[:i+1])
+        except Exception: s = 0
+        s = 1 if s and s > 0 else (-1 if s and s < 0 else 0)
+        if pos is not None:
+            v = velas[i]; salida = None; motivo = ""
+            if pos["dir"] == 1:
+                if pos["sl"] is not None and v["l"] <= pos["sl"]: salida, motivo = pos["sl"], "SL"
+                elif pos["tp"] is not None and v["h"] >= pos["tp"]: salida, motivo = pos["tp"], "TP"
+            else:
+                if pos["sl"] is not None and v["h"] >= pos["sl"]: salida, motivo = pos["sl"], "SL"
+                elif pos["tp"] is not None and v["l"] <= pos["tp"]: salida, motivo = pos["tp"], "TP"
+            if salida is None and s != 0 and s != pos["dir"] and i + 1 < n:
+                salida, motivo = velas[i+1]["o"] + (spread/2 if pos["dir"] == -1 else -spread/2), "SEAL"
+            if salida is None and i == n - 1: salida, motivo = v["c"], "FIN"
+            if salida is not None:
+                pts = (salida - pos["entrada"]) * pos["dir"]
+                trades.append({"dir": pos["dir"], "pts": pts, "sl_dist": pos["sl_dist"], "motivo": motivo,
+                               "fecha_e": pos["fecha"], "fecha_s": v["fecha"], "barras": i - pos["i"]})
+                pos = None
+        if pos is None and s != 0 and s != senal_prev and i + 1 < n:
+            a = atr(velas[:i+1]) or 1e-9
+            sl_dist = stop_p if stop_p else (stop_a * a if stop_a else None)
+            tp_dist = take_p if take_p else (take_a * a if take_a else None)
+            ent = velas[i+1]["o"]
+            if s == 1:
+                ent += spread/2
+                sl = ent - sl_dist if sl_dist else None; tp = ent + tp_dist if tp_dist else None
+            else:
+                ent -= spread/2
+                sl = ent + sl_dist if sl_dist else None; tp = ent - tp_dist if tp_dist else None
+            if sl_dist is None: sl_dist = 2 * a
+            pos = {"dir": s, "entrada": ent, "sl": sl, "tp": tp, "sl_dist": sl_dist,
+                   "fecha": velas[i+1]["fecha"], "i": i+1}
+        senal_prev = s
+    equity, curva = 100.0, [100.0]
+    for t in trades:
+        r = (t["pts"] / t["sl_dist"]) if t["sl_dist"] > 0 else 0.0
+        t["pnl_pct"] = riesgo * r * 100
+        equity *= (1 + riesgo * r); curva.append(equity)
+    return trades, curva
+
+def metricas(trades, curva, velas):
+    wins  = [t for t in trades if t["pts"] > 0]
+    loses = [t for t in trades if t["pts"] <= 0]
+    gp = sum(t["pts"] for t in wins); gl = abs(sum(t["pts"] for t in loses)) or 1e-12
+    pf = gp / gl if loses else (99.0 if gp > 0 else 0)
+    wr = len(wins) / len(trades) * 100 if trades else 0
+    pnl_tot = sum(t["pts"] for t in trades)
+    pico, mdd = curva[0], 0.0
+    for e in curva:
+        if e >= pico: pico = e
+        mdd = max(mdd, (pico - e) / pico * 100)
+    rets = [math.log(curva[i]/curva[i-1]) for i in range(1, len(curva)) if curva[i-1] > 0]
+    ops_anyo = len(trades) / max(len(velas)/252, 1e-9)
+    sharpe = (statistics.mean(rets)/statistics.pstdev(rets)*math.sqrt(ops_anyo)) if len(rets) > 2 and statistics.pstdev(rets) > 0 else 0.0
+    racha, max_racha = 0, 0
+    for t in trades:
+        if t["pts"] <= 0: racha += 1; max_racha = max(max_racha, racha)
+        else: racha = 0
+    orden = sorted(trades, key=lambda t: t["pnl_pct"], reverse=True)
+    conc = (sum(t["pnl_pct"] for t in orden[:3]) / (sum(t["pnl_pct"] for t in wins) or 1e-12)) * 100 if wins else 0
+    return {"trades": len(trades), "wins": len(wins), "loses": len(loses), "wr": wr, "pf": pf,
+            "pnl_pts": pnl_tot, "ret_pct": curva[-1]-100, "mdd": mdd, "sharpe": sharpe,
+            "max_racha_neg": max_racha, "expect_pts": pnl_tot/len(trades) if trades else 0,
+            "conc3": conc, "ops_anyo": ops_anyo,
+            "sl_count": sum(1 for t in trades if t["motivo"] == "SL"),
+            "tp_count": sum(1 for t in trades if t["motivo"] == "TP"),
+            "sena_count": sum(1 for t in trades if t["motivo"] == "SEAL"),
+            "barras_media": statistics.mean([t["barras"] for t in trades]) if trades else 0,
+            "buyhold_pct": (velas[-1]["c"]/velas[0]["o"]-1)*100}
+
+def diagnosticar(m, cfg, trades):
+    problemas, avisos = [], []
+    if m["trades"] < 30:
+        problemas.append("Muestra insuficiente: solo %d operaciones. Con menos de ~30 no hay estadistica seria; amplia el historico o baja el marco temporal." % m["trades"])
+    if cfg.get("STOP_PIPS") is None and cfg.get("STOP_ATR") is None:
+        problemas.append("Tu estrategia NO define STOP (ni STOP_PIPS ni STOP_ATR). El probador uso uno virtual de 2xATR solo para simular, pero operar sin stop real es la forma n1 de volar una cuenta.")
+    if m["pf"] < 1:
+        problemas.append("Profit factor %.2f < 1: pierdes mas de lo que ganas. Tal cual, NO es operable." % m["pf"])
+    elif m["pf"] < 1.3:
+        avisos.append("Profit factor %.2f: marginal. Con spread, deslizamiento y malas rachas reales puede quedarse en nada." % m["pf"])
+    if m["mdd"] > 25:
+        problemas.append("Drawdown maximo del %.0f%%: la mayoria de humanos abandonan (o hacen locuras) mucho antes de recuperarse de eso." % m["mdd"])
+    elif m["mdd"] > 15:
+        avisos.append("Drawdown del %.0f%%: considerable. Lo aguantarias en vivo sin apagar el robot?" % m["mdd"])
+    if m["conc3"] > 40 and m["wins"] > 0:
+        problemas.append("El %.0f%% de tus ganancias viene de solo 3 operaciones: dependes de la suerte de un par de dias. Sin esas 3, el sistema cambia por completo." % m["conc3"])
+    if m["expect_pts"] <= 0:
+        problemas.append("Expectativa por operacion <= 0: cada clic tuyo destruye valor de media.")
+    if m["max_racha_neg"] >= 8:
+        problemas.append("Racha maxima de %d perdidas seguidas. Con riesgo del %s%% eso son ~%.0f%% de cuenta en una mala racha."
+                         % (m["max_racha_neg"], str(cfg.get("RIESGO_PCT", 1.0)), m["max_racha_neg"]*cfg.get("RIESGO_PCT", 1.0)))
+    if m["ops_anyo"] < 4:
+        avisos.append("Solo %.1f operaciones/ano: tardaras una eternidad en saber si funciona en vivo." % m["ops_anyo"])
+    if m["wins"] > 0 and m["loses"] > 0:
+        gw = sum(t["pts"] for t in trades if t["pts"] > 0) / m["wins"]
+        gl2 = abs(sum(t["pts"] for t in trades if t["pts"] <= 0)) / m["loses"]
+        if gw < gl2 * 0.8 and m["wr"] < 50:
+            avisos.append("Ganas poco (%.1f pts) y pierdes mucho (%.1f pts) con un winrate del %.0f%%: una pequena variacion del mercado rompe el equilibrio." % (gw, gl2, m["wr"]))
+    if m["sl_count"] == 0 and (cfg.get("STOP_PIPS") or cfg.get("STOP_ATR")):
+        avisos.append("Nunca salto el stop: o es demasiado ancho, o tu muestra es demasiado amable.")
+    return problemas, avisos
+
+# ---------- anti-sobreajuste ----------
+def _fresh_ns():
+    return {"ema": ema, "sma": sma, "rsi": rsi, "atr": atr, "maximo": maximo, "minimo": minimo}
+
+def _cfg_de(ns):
+    return {k: ns.get(k) for k in ("STOP_PIPS","TAKE_PIPS","STOP_ATR","TAKE_ATR","RIESGO_PCT") if ns.get(k) is not None}
+
+def detectar_parametros(ns):
+    params = {}
+    for k, v in ns.items():
+        if (isinstance(v, (int, float)) and not isinstance(v, bool)
+                and k == k.upper() and any(ch.isalpha() for ch in k)
+                and not k.startswith("_") and k != "RIESGO_PCT"):
+            params[k] = v
+    return params
+
+def prueba_ciega(codigo, velas, spread):
+    corte = int(len(velas) * 0.7)
+    def go(tramo):
+        ns2 = _fresh_ns()
+        exec(compile(codigo, "estrategia.py", "exec"), ns2)
+        t, c = ejecutar_backtest(tramo, ns2.get("senal"), _cfg_de(ns2), spread)
+        return metricas(t, c, tramo) if len(t) >= 3 else None
+    return go(velas[:corte]), go(velas[max(0, corte-60):])
+
+def sensibilidad(codigo, velas, params, spread):
+    tabla = []
+    for nombre, valor in params.items():
+        ensayos = []
+        for f in (0.75, 1.25):
+            v = valor * f
+            if isinstance(valor, int): v = max(1, int(round(v)))
+            if v == valor: v = valor - 1 if f < 1 else valor + 1
+            ns2 = _fresh_ns()
+            try:
+                exec(compile(codigo, "estrategia.py", "exec"), ns2)
+                ns2[nombre] = v
+                t2, c2 = ejecutar_backtest(velas, ns2.get("senal"), _cfg_de(ns2), spread)
+                m2 = metricas(t2, c2, velas) if len(t2) >= 3 else None
+                ensayos.append((v, m2["pf"] if m2 else None, len(t2)))
+            except Exception:
+                ensayos.append((v, None, -1))
+        tabla.append((nombre, valor, ensayos))
+    return tabla
+
+def clasificar_param(pf_base, ensayos):
+    pfs = [e[1] for e in ensayos if e[1] is not None]
+    if len(pfs) < 2: return "sin datos", pfs
+    lo, hi = min(pfs), max(pfs)
+    if pf_base >= 1 and lo < 1: return "fragil", pfs
+    if pf_base > 0 and (hi - lo) > 0.5 * max(abs(pf_base), 0.5): return "sensible", pfs
+    return "estable", pfs
+
+# ---------- entrada principal ----------
+def run(csv_text, codigo, spread):
+    velas = parse_csv(csv_text)
+    if len(velas) < 120:
+        return {"ok": False, "error": "Solo %d velas validas: necesito al menos ~120 (mejor 500+)." % len(velas)}
+    ns = _fresh_ns()
+    try:
+        exec(compile(codigo, "estrategia.py", "exec"), ns)
+    except Exception as e:
+        return {"ok": False, "error": "Error de Python en tu estrategia: %s: %s" % (type(e).__name__, e)}
+    if not callable(ns.get("senal")):
+        return {"ok": False, "error": "Tu archivo debe definir  def senal(i, velas)  (1=comprar, -1=vender, 0=nada)."}
+    cfg = _cfg_de(ns)
+    trades, curva = ejecutar_backtest(velas, ns["senal"], cfg, spread)
+    if not trades:
+        return {"ok": False, "error": "Tu estrategia no genero NI UNA operacion. Revisa la logica (condiciones imposibles? indices?)."}
+    m = metricas(trades, curva, velas)
+    problemas, avisos = diagnosticar(m, cfg, trades)
+    blind_is = blind_os = None; sens_out = []
+    if len(velas) >= 200:
+        params = detectar_parametros(ns)
+        blind_is, blind_os = prueba_ciega(codigo, velas, spread)
+        if params:
+            sens_out = sensibilidad(codigo, velas, params, spread)
+        else:
+            avisos.append("No detecto parametros tuyos en MAYUSCULAS: bien por parsimonia... a menos que la logica este cableada a este periodo concreto (eso tambien es sobreajuste, solo que disfrazado).")
+        if blind_is and blind_os:
+            if blind_is["pf"] >= 1.2 and blind_os["pf"] < 1:
+                problemas.append("Sobreajuste clasico: entrenamiento PF %.2f pero prueba ciega PF %.2f. Se sabe el pasado de memoria." % (blind_is["pf"], blind_os["pf"]))
+            elif blind_is["pf"] > 1 and blind_os["pf"] < blind_is["pf"] * 0.6:
+                avisos.append("Se degrada mucho fuera de muestra (PF %.2f -> %.2f): parcialmente sobreajustada." % (blind_is["pf"], blind_os["pf"]))
+    else:
+        avisos.append("Historico < 200 velas: no hay datos para la prueba ciega 70/30. Amplia el historico para fiarte del filtro anti-sobreajuste.")
+    # veredicto
+    if problemas and m["pf"] < 1: veredicto = ("bad", "NO RENTABLE")
+    elif problemas: veredicto = ("warn", "RENTABLE EN PAPEL, PERO CON PEGAS SERIAS")
+    elif avisos and (m["pf"] < 1.3 or m["trades"] < 40): veredicto = ("warn", "PROMETE, PERO AUN NO ES CONFIABLE")
+    else: veredicto = ("ok", "RENTABLE Y ESTADISTICAMENTE DIGNA")
+    # sensibilidad + receta
+    sens_json = []
+    for nombre, valor, ensayos in sens_out:
+        estado, pfs = clasificar_param(m["pf"], ensayos)
+        detalle = ("PF oscila %.2f ~ %.2f" % (min(pfs), max(pfs))) if len(pfs) >= 2 else \
+                  ("movido +/-25%% -> solo %d ops: parametro tenso, se rompe al tocarlo" % min(e[2] for e in ensayos))
+        sens_json.append({"nombre": nombre, "valor": valor, "estado": estado, "detalle": detalle})
+    receta = []
+    if blind_is and blind_os and blind_is["pf"] >= 1.2 and blind_os["pf"] < 1:
+        receta.append("Tu sistema funciona 'de memoria': SIMPLIFICA. Quita filtros/reglas y no la reoptimices hasta que quede bonita de nuevo: eso ES sobreoptimizar.")
+    elif blind_is and blind_os and blind_is["pf"] > 1 and blind_os["pf"] < blind_is["pf"] * 0.7:
+        receta.append("Degrada fuera de muestra: baja la precision de tus parametros (valores mas redondos, menos decimales magicos).")
+    for s in sens_json:
+        if s["estado"] == "fragil":
+            receta.append("%s: NO lo afines mas. Pon un valor redondo y comun (medias 10/20/50, RSI 14, ATR 2-3x) y asume como 'real' el PEOR resultado de su vecindad." % s["nombre"])
+        elif s["estado"] == "sensible":
+            receta.append("%s: puedes moverlo, pero ajuste fino = sobreoptimizacion. Si lo tocas, exige que medio entorno (+/-25%%) siga ganando." % s["nombre"])
+        elif s["estado"] == "sin datos":
+            receta.append("%s: con +/-25%% tu estrategia casi deja de operar -> esta al filo; dale holgura (condiciones menos estrictas)." % s["nombre"])
+    estables = [s["nombre"] for s in sens_json if s["estado"] == "estable"]
+    if estables:
+        receta.append("Estables (%s): aqui NO hay nada que tocar - tu ventaja no depende del valor exacto. Tocarlos mas es pintar sobre el lienzo." % ", ".join(estables))
+    if len(sens_json) > 4:
+        receta.append("Tienes %d parametros: cada uno es otra puerta al sobreajuste. Parsimonia: maximo 3-4 piezas moviles." % len(sens_json))
+    receta.append("La meta NO es el backtest mas alto: es la MESETA donde todo el entorno (+/-25%, otra epoca, otro activo similar) sigue funcionando. El maximo del backtest siempre es el punto mas sobreajustado.")
+    receta.append("Despues del filtro: forward-test en demo 2-3 meses antes de soltar un euro real.")
+    trades_out = [{"fecha_e": t["fecha_e"], "fecha_s": t["fecha_s"], "dir": t["dir"],
+                   "pts": round(t["pts"], 2), "pnl_pct": round(t["pnl_pct"], 2),
+                   "motivo": t["motivo"], "barras": t["barras"]} for t in trades[-60:]]
+    blind_json = None
+    if blind_is:
+        marca = "ok"
+        if blind_os:
+            if blind_is["pf"] >= 1.2 and blind_os["pf"] < 1: marca = "bad"
+            elif blind_os["pf"] < blind_is["pf"] * 0.7: marca = "warn"
+        blind_json = {"is_m": {"pf": round(blind_is["pf"],2), "trades": blind_is["trades"], "ret": round(blind_is["ret_pct"],1)},
+                      "os_m": ({"pf": round(blind_os["pf"],2), "trades": blind_os["trades"], "ret": round(blind_os["ret_pct"],1)} if blind_os else None),
+                      "marca": marca}
+    return {"ok": True, "n_velas": len(velas), "fecha_ini": velas[0]["fecha"], "fecha_fin": velas[-1]["fecha"],
+            "m": {k: (round(v, 3) if isinstance(v, float) else v) for k, v in m.items()},
+            "problemas": problemas, "avisos": avisos, "veredicto": veredicto,
+            "blind": blind_json, "sens": sens_json, "receta": receta,
+            "curva": [round(x, 2) for x in curva], "trades_recent": trades_out[::-1]}
+`;
+/* === ENGINE END === */
+
+/* ================= DATOS ================= */
+const ACTIVOS = {
+  oro:    { sym: "GC=F",     spread: 0.5,    nombre: "Oro (futuro GC, diario)" },
+  plata:  { sym: "SI=F",     spread: 0.03,   nombre: "Plata (futuro SI, diario)" },
+  dax:    { sym: "%5EGDAXI", spread: 2.0,    nombre: "DAX alemán (diario)" },
+  nasdaq: { sym: "%5ENDX",   spread: 3.0,    nombre: "Nasdaq 100 (diario)" },
+  sp500:  { sym: "%5EGSPC",  spread: 1.0,    nombre: "S&P 500 (diario)" },
+  eurusd: { sym: "EURUSD=X", spread: 0.0002, nombre: "EUR/USD (diario)" },
+  gbpusd: { sym: "GBPUSD=X", spread: 0.0003, nombre: "GBP/USD (diario)" },
+};
+
+function log(msg){ document.getElementById("status").textContent += msg + "\n";
+  const el = document.getElementById("status"); el.scrollTop = el.scrollHeight; }
+function logReset(msg){ document.getElementById("status").textContent = msg + "\n"; }
+
+async function fetchTexto(url){
+  const proxys = [u => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+                  u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+                  u => u];
+  let ultimoErr = null;
+  for (const wrap of proxys){
+    try {
+      const r = await fetch(wrap(url), { signal: AbortSignal.timeout(25000) });
+      if (r.ok){ const t = await r.text(); if (t && t.length > 200) return t; }
+      ultimoErr = new Error("HTTP " + r.status);
+    } catch(e){ ultimoErr = e; }
+  }
+  throw ultimoErr || new Error("sin datos");
+}
+
+async function descargarActivo(clave, rango){
+  const a = ACTIVOS[clave];
+  const url = "https://query1.finance.yahoo.com/v8/finance/chart/" + a.sym + "?range=" + rango + "&interval=1d";
+  const txt = await fetchTexto(url);
+  const j = JSON.parse(txt.replace(/^\uFEFF/, "").replace(/^[^{\[]*/, "").trim());
+  const res = j.chart.result[0];
+  const ts = res.timestamp || [];
+  const q = res.indicators.quote[0];
+  let csvText = "date,open,high,low,close\n";
+  let n = 0;
+  for (let k = 0; k < ts.length; k++){
+    const c = q.close[k];
+    if (c === null || c === undefined || !(c > 0)) continue;
+    const fecha = new Date(ts[k] * 1000).toISOString().slice(0, 10);
+    csvText += [fecha, q.open[k] ?? c, q.high[k] ?? c, q.low[k] ?? c, c].join(",") + "\n";
+    n++;
+  }
+  if (n < 100) throw new Error("Yahoo devolvió solo " + n + " velas");
+  return { csvText, n, spread: a.spread, nombre: a.nombre };
+}
+
+/* ================= RENDER ================= */
+const $ = id => document.getElementById(id);
+const fmt = (x, d=2) => (typeof x === "number" ? x.toLocaleString("es-ES", {minimumFractionDigits: d, maximumFractionDigits: d}) : x);
+const cls = (v, buena) => v >= buena ? "ok" : (v >= buena * 0.7 ? "warn" : "bad");
+
+function renderResultado(r, nombreFuente){
+  $("resultados").style.display = "block";
+  const [vcls, vtxt] = r.veredicto;
+  const vEl = $("verdict");
+  vEl.className = "verdict " + (vcls === "ok" ? "v-ok" : vcls === "bad" ? "v-bad" : "v-warn");
+  vEl.textContent = (vcls === "ok" ? "✅ VEREDICTO: " : vcls === "bad" ? "❌ VEREDICTO: " : "⚠️ VEREDICTO: ") + vtxt;
+
+  const m = r.m;
+  $("metrics").innerHTML = [
+    ["Operaciones", m.trades, "acc", fmt(m.trades, 0)],
+    ["Winrate", m.wr, m.wr >= 50 ? "ok" : "warn", fmt(m.wr, 1) + "%"],
+    ["Profit factor", m.pf, cls(m.pf, 1.3), fmt(m.pf)],
+    ["Rentabilidad", m.ret_pct, m.ret_pct >= 0 ? "ok" : "bad", (m.ret_pct >= 0 ? "+" : "") + fmt(m.ret_pct, 1) + "%"],
+    ["Buy & Hold", m.buyhold_pct, "acc", (m.buyhold_pct >= 0 ? "+" : "") + fmt(m.buyhold_pct, 1) + "%"],
+    ["Drawdown máx", m.mdd, m.mdd <= 15 ? "ok" : (m.mdd <= 25 ? "warn" : "bad"), fmt(m.mdd, 1) + "%"],
+    ["Expectativa/trade", m.expect_pts, m.expect_pts > 0 ? "ok" : "bad", (m.expect_pts >= 0 ? "+" : "") + fmt(m.expect_pts) + " pts"],
+    ["Sharpe (anual)", m.sharpe, m.sharpe >= 1 ? "ok" : (m.sharpe >= 0 ? "warn" : "bad"), fmt(m.sharpe)],
+    ["Racha perdedora", m.max_racha_neg, m.max_racha_neg < 6 ? "ok" : "warn", fmt(m.max_racha_neg, 0)],
+    ["Pts totales", m.pnl_pts, m.pnl_pts >= 0 ? "ok" : "bad", (m.pnl_pts >= 0 ? "+" : "") + fmt(m.pnl_pts, 1)],
+  ].map(([t, v, c, s]) => `<div class="mcard"><span>${t}</span><b class="${c}">${s}</b></div>`).join("");
+  $("metricsSub").textContent = `${nombreFuente} · ${r.n_velas} velas (${r.fecha_ini} → ${r.fecha_fin}) · ` +
+    `${m.ops_anyo.toFixed(1)} ops/año · duración media ${m.barras_media.toFixed(0)} velas · cierres: SL ${m.sl_count} / TP ${m.tp_count} / señal ${m.sena_count}`;
+
+  dibujarEquity(r.curva);
+
+  let ph = "";
+  r.problemas.forEach(p => ph += `<div class="issue">🚨 ${p}</div>`);
+  r.avisos.forEach(a => ph += `<div class="issue amber">⚠️ ${a}</div>`);
+  if (!ph) ph = `<div class="issue blue">✨ Sin problemas detectados: pasa al forward-test en demo, campeón.</div>`;
+  $("problemas").innerHTML = ph;
+
+  let bh = "";
+  if (r.blind){
+    const b = r.blind, sym = {ok: "✅", warn: "⚠️", bad: "🚨"}[b.marca];
+    bh += `<div class="issue blue">🧪 <b>Prueba ciega 70/30</b> — entrenamiento: PF <b>${fmt(b.is_m.pf)}</b> (${b.is_m.trades} ops, ${b.is_m.ret >= 0 ? "+" : ""}${b.is_m.ret}%)`;
+    bh += b.os_m ? ` · prueba ciega: PF <b>${fmt(b.os_m.pf)}</b> (${b.os_m.trades} ops, ${b.os_m.ret >= 0 ? "+" : ""}${b.os_m.ret}%) ${sym}</div>`
+                 : ` · prueba ciega: apenas operó; amplía el histórico ⚠️</div>`;
+  }
+  $("blindtest").innerHTML = bh || `<div class="issue amber">Histórico corto: prueba ciega limitada.</div>`;
+
+  if (r.sens && r.sens.length){
+    let sh = `<table><thead><tr><th>Parámetro</th><th>Valor</th><th>Al moverlo ±25%</th><th>Estado</th></tr></thead><tbody>`;
+    const tag = { "fragil": '<span class="tag t-bad">🚨 FRÁGIL</span>',
+                  "sensible": '<span class="tag t-warn">⚠️ sensible</span>',
+                  "estable": '<span class="tag t-ok">✅ estable</span>',
+                  "sin datos": '<span class="tag t-warn">⚠️ tenso</span>' };
+    r.sens.forEach(s => sh += `<tr><td><code style="color:var(--acc2)">${s.nombre}</code></td><td>${s.valor}</td><td>${s.detalle}</td><td>${tag[s.estado] || s.estado}</td></tr>`);
+    $("sensibilidad").innerHTML = sh + "</tbody></table>";
+  } else {
+    $("sensibilidad").innerHTML = `<div class="issue blue">Sin parámetros numéricos en MAYÚSCULAS: nada que sacudir 🧘 (declara tus ajustes como <code style="color:var(--acc2)">PERIODO = 14</code> para este test).</div>`;
+  }
+
+  $("receta").innerHTML = r.receta.map((x, i) => `<div class="issue blue">💊 ${x}</div>`).join("");
+
+  $("tablaTrades").innerHTML = r.trades_recent.map(t => {
+    const dir = t.dir === 1 ? "▲ largo" : "▼ corto";
+    const c = t.pts > 0 ? "ok" : "bad";
+    return `<tr><td>${t.fecha_e}</td><td>${t.fecha_s}</td><td>${dir}</td>
+      <td class="${c}">${t.pts > 0 ? "+" : ""}${t.pts}</td>
+      <td class="${c}">${t.pnl_pct > 0 ? "+" : ""}${t.pnl_pct}%</td><td>${t.motivo === "SEAL" ? "señal" : t.motivo}</td></tr>`;
+  }).join("") || "<tr><td colspan=6>—</td></tr>";
+
+  $("resultados").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
+function dibujarEquity(curva){
+  const c = $("equity"); const ctx = c.getContext("2d");
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  if (!curva || curva.length < 2) return;
+  const padL = 52, padR = 16, padT = 16, padB = 26;
+  const minV = Math.min(...curva, 100), maxV = Math.max(...curva, 100);
+  const span = (maxV - minV) || 1;
+  const X = i => padL + (W - padL - padR) * i / (curva.length - 1);
+  const Y = v => padT + (H - padT - padB) * (1 - (v - minV) / span * 0.92 - 0.04);
+  // rejilla
+  ctx.strokeStyle = "rgba(255,255,255,.07)"; ctx.fillStyle = "#8a8fbf";
+  ctx.font = "11px 'JetBrains Mono', monospace"; ctx.textAlign = "right";
+  for (let g = 0; g <= 4; g++){
+    const v = minV + span * g / 4, y = Y(v);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillText(v.toFixed(1), padL - 8, y + 4);
+  }
+  // línea base 100
+  if (minV < 100 && maxV > 100){
+    ctx.strokeStyle = "rgba(255,107,122,.5)"; ctx.setLineDash([6, 5]);
+    ctx.beginPath(); ctx.moveTo(padL, Y(100)); ctx.lineTo(W - padR, Y(100)); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // área + línea
+  const sube = curva[curva.length - 1] >= 100;
+  const col = sube ? "#43d9b2" : "#ff6b7a";
+  const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
+  grad.addColorStop(0, sube ? "rgba(67,217,178,.30)" : "rgba(255,107,122,.30)");
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.beginPath(); ctx.moveTo(X(0), Y(curva[0]));
+  curva.forEach((v, i) => ctx.lineTo(X(i), Y(v)));
+  ctx.lineTo(X(curva.length - 1), H - padB); ctx.lineTo(X(0), H - padB); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(X(0), Y(curva[0]));
+  curva.forEach((v, i) => ctx.lineTo(X(i), Y(v)));
+  ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.stroke();
+  // etiqueta final
+  ctx.fillStyle = col; ctx.textAlign = "left";
+  ctx.font = "700 13px 'JetBrains Mono', monospace";
+  ctx.fillText(curva[curva.length - 1].toFixed(1), W - padR - 46, Y(curva[curva.length - 1]) - 8);
+}
+
+/* ================= FLUJO PRINCIPAL ================= */
+let pyodideReady = null;
+async function cargarPyodide(){
+  if (!pyodideReady){
+    pyodideReady = (async () => {
+      log("⏳ Cargando Python en tu navegador (Pyodide, ~10 MB, solo la primera vez)…");
+      const py = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/" });
+      await py.runPythonAsync(PY_ENGINE);
+      log("✅ Motor Python listo. ¡A juzgar estrategias!");
+      return py;
+    })();
+  }
+  return pyodideReady;
+}
+
+let csvSubido = null;
+$("csvfile").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f){ csvSubido = null; return; }
+  const rd = new FileReader();
+  rd.onload = () => { csvSubido = { nombre: f.name, texto: rd.result }; logReset("📄 CSV cargado: " + f.name + " (" + Math.round(String(rd.result).length/1024) + " KB). Se usará en vez del activo."); };
+  rd.readAsText(f);
+});
+$("pyfile").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { $("codigo").value = rd.result; logReset("🐍 Estrategia cargada: " + f.name); };
+  rd.readAsText(f);
+});
+$("btnDemo").addEventListener("click", () => {
+  $("codigo").value = DEMO_CODE; logReset("🔄 Demo restaurada.");
+});
+$("btnPlantilla").addEventListener("click", () => {
+  document.getElementById("ayuda").open = true;
+  document.getElementById("ayuda").scrollIntoView({behavior: "smooth"});
+});
+
+const DEMO_CODE = document.getElementById("codigo").value;
+
+$("btnRun").addEventListener("click", async () => {
+  const btn = $("btnRun"); btn.disabled = true;
+  try {
+    logReset("⚖️ El juez está entrando en la sala…");
+    const codigo = $("codigo").value;
+    if (!codigo.includes("def senal")) throw new Error("Tu código debe definir  def senal(i, velas): …");
+
+    let csvText, spread, fuente;
+    if (csvSubido){
+      csvText = csvSubido.texto; spread = 0.0; fuente = "CSV: " + csvSubido.nombre;
+      log("📄 Usando tu CSV (" + csvSubido.nombre + ")…");
+    } else {
+      const clave = $("activo").value, rango = $("periodo").value;
+      log("⬇️ Descargando " + ACTIVOS[clave].nombre + " (" + rango + ")…");
+      const d = await descargarActivo(clave, rango);
+      csvText = d.csvText; spread = d.spread; fuente = d.nombre;
+      log("✅ " + d.n + " velas descargadas. Spread asumido: " + spread + " pts.");
+    }
+
+    const py = await cargarPyodide();
+    log("🔥 Ejecutando backtest + prueba ciega 70/30 + sensibilidad ±25%…");
+    log("   (con historiales largos y muchos parámetros puede tardar 20-60 s: es Python de verdad trabajando)");
+    const t0 = performance.now();
+    py.globals.set("CSV_TEXT", csvText);
+    py.globals.set("ESTR_CODE", codigo);
+    py.globals.set("SPREAD", spread);
+    const resTxt = await py.runPythonAsync("json.dumps(run(CSV_TEXT, ESTR_CODE, SPREAD))");
+    const r = JSON.parse(resTxt);
+    log("⏱️ Listo en " + ((performance.now() - t0) / 1000).toFixed(1) + " s.");
+    if (!r.ok) throw new Error(r.error);
+    renderResultado(r, fuente);
+    log("⚖️ Veredicto emitido: " + r.veredicto[1]);
+  } catch (e){
+    log("❌ " + (e && e.message ? e.message : e));
+    log("💡 Si es un error de descarga: prueba otro activo, o sube tu propio CSV (siempre funciona).");
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

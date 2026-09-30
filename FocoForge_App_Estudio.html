@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocoForge — Tu centro de estudio</title>
+<meta name="description" content="FocoForge — App de estudio todo en uno: temporizador Pomodoro, tareas, hábitos con rachas, notas y estadísticas. Sin instalar nada, tus datos se guardan en tu navegador.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+/* aplica el tema guardado antes del primer pintado (evita destellos) */
+try{document.documentElement.dataset.theme=localStorage.getItem('focoforge-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}
+</script>
+<style>
+:root{
+  --bg:#070b16;--panel:#0d1324;--panel2:#111a30;--text:#eef3ff;--muted:#9ca9c7;
+  --accent:#7c8cff;--accent2:#43d9b2;--gold:#ffc857;--danger:#ff6b7a;
+  --border:rgba(255,255,255,.09);--shadow:0 20px 60px rgba(0,0,0,.35)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 10%,#172554 0,transparent 32%),radial-gradient(circle at 85% 15%,#16352f 0,transparent 28%),var(--bg);color:var(--text);font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.65;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,black,transparent 85%);z-index:-1}
+::selection{background:rgba(124,140,255,.35);color:#fff}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;border-radius:6px}
+
+/* ---------- cabecera ---------- */
+header{padding:46px 20px 26px;max-width:1000px;margin:auto;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;color:#cdd6ff;font-size:.85rem}
+.badge:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(67,217,178,.5)}70%{box-shadow:0 0 0 7px rgba(67,217,178,0)}100%{box-shadow:0 0 0 0 rgba(67,217,178,0)}}
+h1{font-family:"Space Grotesk","Inter",sans-serif;font-size:clamp(2.2rem,5.5vw,3.8rem);line-height:1.02;margin:16px 0 6px;background:linear-gradient(110deg,#fff,#9ba8ff 45%,#55e5bd);-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;letter-spacing:-.05em}
+header p{color:var(--muted);max-width:620px;margin:0 auto}
+
+/* mini stats del hero */
+.hero-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.hstat{padding:12px 18px;background:rgba(13,19,36,.75);border:1px solid var(--border);border-radius:16px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);min-width:110px}
+.hstat strong{display:block;font-family:"Space Grotesk",sans-serif;font-size:1.3rem}
+.hstat span{color:var(--muted);font-size:.78rem}
+
+/* ---------- pestañas ---------- */
+.tabs{position:sticky;top:10px;z-index:20;display:flex;gap:8px;max-width:1000px;margin:20px auto 0;padding:10px;background:rgba(7,11,22,.85);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:auto}
+.tabs{--pad:10px;margin-left:12px;margin-right:12px}
+.tab-btn{flex:1;white-space:nowrap;border:1px solid transparent;background:transparent;color:var(--muted);padding:11px 14px;border-radius:13px;cursor:pointer;font:inherit;font-weight:600;font-size:.95rem;transition:.2s}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.tab-btn.active{background:linear-gradient(135deg,rgba(124,140,255,.2),rgba(67,217,178,.14));color:var(--text);border-color:rgba(124,140,255,.35)}
+
+main{max-width:1000px;margin:auto;padding:24px 12px 80px}
+.panel{display:none;animation:panelIn .3s ease}
+.panel.show{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.card{background:rgba(13,19,36,.86);border:1px solid var(--border);border-radius:24px;padding:26px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-family:"Space Grotesk",sans-serif;margin:0 0 6px;font-size:1.5rem}
+.card .sub{color:var(--muted);font-size:.92rem;margin:0 0 18px}
+
+/* ---------- temporizador ---------- */
+.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:18px}
+.modes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.mode-btn{border:1px solid var(--border);background:var(--panel2);color:var(--muted);padding:9px 16px;border-radius:999px;cursor:pointer;font:inherit;font-weight:600;font-size:.88rem;transition:.2s}
+.mode-btn:hover{color:var(--text)}
+.mode-btn.active{background:linear-gradient(135deg,#6674ff,#43d9b2);color:#061018;border-color:transparent}
+.ring-box{position:relative;width:min(280px,80vw);aspect-ratio:1}
+.ring-box svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--panel2);stroke-width:14}
+.ring-fg{fill:none;stroke:url(#ringGrad);stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.timer-time{position:absolute;inset:0;display:grid;place-items:center;font-family:"Space Grotesk",sans-serif;font-variant-numeric:tabular-nums;font-size:clamp(3rem,12vw,4.2rem);font-weight:700;letter-spacing:-.03em}
+.timer-label{position:absolute;left:0;right:0;top:62%;text-align:center;color:var(--muted);font-size:.85rem}
+.timer-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:12px 22px;border-radius:14px;cursor:pointer;font:inherit;font-weight:700;font-size:.95rem;transition:.2s}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,#6674ff,#43d9b2);color:#061018;border:none}
+.btn-primary:hover{box-shadow:0 8px 24px rgba(102,116,255,.35);filter:brightness(1.06)}
+.sessions{color:var(--muted);font-size:.9rem}
+.sessions b{color:var(--accent2);font-family:"JetBrains Mono",monospace}
+details.settings{margin-top:4px;border:1px dashed var(--border);border-radius:14px;padding:12px 16px;max-width:420px;width:100%}
+details.settings summary{cursor:pointer;color:var(--muted);font-size:.9rem;list-style:none}
+details.settings summary:before{content:"⚙ "}
+.settings-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.settings-row label{flex:1;min-width:100px;color:var(--muted);font-size:.82rem;display:flex;flex-direction:column;gap:5px}
+.num-input{background:#0a1020;border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;font:inherit;width:100%}
+.num-input:focus{border-color:var(--accent);outline:none}
+
+/* ---------- tareas ---------- */
+.add-row{display:flex;gap:10px}
+.txt-input{flex:1;min-width:0;background:#0a1020;border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:13px;font:inherit;outline:none}
+.txt-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,140,255,.18)}
+.filters{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+.filter-btn{border:1px solid var(--border);background:transparent;color:var(--muted);padding:7px 14px;border-radius:999px;cursor:pointer;font:inherit;font-size:.85rem;font-weight:600;transition:.2s}
+.filter-btn.active{background:rgba(124,140,255,.15);color:var(--text);border-color:rgba(124,140,255,.4)}
+.list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:13px 15px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;transition:border-color .2s;animation:itemIn .25s ease}
+@keyframes itemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.item:hover{border-color:rgba(124,140,255,.3)}
+.item .txt{flex:1;word-break:break-word}
+.item.done .txt{text-decoration:line-through;color:var(--muted)}
+.item.done{border-style:dashed;opacity:.75}
+.check-box{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:7px;margin:0;border:1.5px solid rgba(255,255,255,.28);background:#0a1020;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .2s,border-color .2s,transform .12s}
+.check-box:active{transform:scale(.88)}
+.check-box:after{content:"";width:11px;height:6px;border-left:2.4px solid #061018;border-bottom:2.4px solid #061018;transform:rotate(-45deg) scale(0) translate(1px,-1px);transition:transform .22s cubic-bezier(.2,.9,.3,1.5)}
+.check-box:checked{background:linear-gradient(135deg,#6674ff,#43d9b2);border-color:transparent}
+.check-box:checked:after{transform:rotate(-45deg) scale(1) translate(1px,-1px)}
+.del-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:8px;transition:.2s}
+.del-btn:hover{color:var(--danger);background:rgba(255,107,122,.1)}
+.empty{color:var(--muted);text-align:center;padding:22px 10px;border:1px dashed var(--border);border-radius:14px;margin-top:12px;font-size:.92rem}
+
+/* ---------- hábitos ---------- */
+.habit{padding:16px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:16px;margin-top:12px;animation:itemIn .25s ease}
+.habit-head{display:flex;align-items:center;gap:10px}
+.habit-head .txt{flex:1;font-weight:600}
+.streak-pill{font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--gold);border:1px solid rgba(255,200,87,.3);background:rgba(255,200,87,.07);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+.day-dot{display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:transparent;cursor:pointer;padding:4px 0}
+.day-dot .d{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase}
+.day-dot .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);display:grid;place-items:center;color:transparent;transition:.2s;font-size:.85rem}
+.day-dot:hover .dot{border-color:var(--accent)}
+.day-dot.on .dot{background:linear-gradient(135deg,#6674ff,#43d9b2);border-color:transparent;color:#061018;font-weight:700}
+.day-dot.today .d{color:var(--accent2)}
+.day-dot:disabled{cursor:default;opacity:.35}
+.day-dot:disabled:hover .dot{border-color:rgba(255,255,255,.2)}
+
+/* ---------- notas ---------- */
+.note{padding:15px 17px;background:rgba(255,200,87,.05);border:1px solid rgba(255,200,87,.16);border-radius:16px;margin-top:12px;animation:itemIn .25s ease;position:relative}
+.note .txt{white-space:pre-line;word-break:break-word;margin-right:26px}
+.note .when{display:block;color:var(--muted);font-size:.75rem;margin-top:7px;font-family:"JetBrains Mono",monospace}
+.note .del-btn{position:absolute;top:8px;right:8px}
+
+/* ---------- estadísticas ---------- */
+.chart-card canvas{width:100%;height:240px;display:block}
+.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.total{padding:16px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:16px;text-align:center}
+.total strong{display:block;font-family:"Space Grotesk",sans-serif;font-size:1.6rem;color:var(--accent2)}
+.total span{color:var(--muted);font-size:.82rem}
+.danger-zone{margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.btn-danger{border-color:rgba(255,107,122,.4);color:var(--danger)}
+.btn-danger:hover{border-color:var(--danger);background:rgba(255,107,122,.08)}
+
+/* ---------- toast + toggles ---------- */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,18px);z-index:90;background:rgba(17,26,48,.93);border:1px solid var(--border);border-radius:14px;padding:12px 20px;box-shadow:var(--shadow);font-weight:600;font-size:.94rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s cubic-bezier(.2,.9,.3,1.2);max-width:min(92vw,460px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:80}
+.corner{position:fixed;top:14px;right:14px;z-index:50;display:flex;gap:8px}
+.icon-btn{width:44px;height:44px;border:1px solid var(--border);background:rgba(13,19,36,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--text);border-radius:14px;cursor:pointer;font-size:1.05rem;transition:.2s}
+.icon-btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+
+footer{color:var(--muted);text-align:center;padding:20px 16px 34px;font-size:.88rem}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:11px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1d2742;border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#2a3860}
+
+/* ---------- tema claro ---------- */
+html[data-theme="light"]{
+  --bg:#f3f5fb;--panel:#ffffff;--panel2:#eef1fa;--text:#131b2e;--muted:#5a6577;
+  --accent:#4f5fd9;--accent2:#0d9e7b;--gold:#c98600;--danger:#d93048;
+  --border:rgba(19,27,46,.12);--shadow:0 20px 50px rgba(30,40,80,.12);
+}
+html[data-theme="light"] body{background:radial-gradient(circle at 15% 10%,#dfe7ff 0,transparent 32%),radial-gradient(circle at 85% 15%,#d3efe7 0,transparent 28%),var(--bg)}
+html[data-theme="light"] body:before{background-image:linear-gradient(rgba(19,27,46,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(19,27,46,.05) 1px,transparent 1px)}
+html[data-theme="light"] h1{background:linear-gradient(110deg,#131b2e,#4f5fd9 45%,#0d9e7b);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .badge{color:#3c4a8a;background:rgba(19,27,46,.05)}
+html[data-theme="light"] .hstat,html[data-theme="light"] .card{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .tabs{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .txt-input,html[data-theme="light"] .num-input{background:#eef1fa;color:#131b2e}
+html[data-theme="light"] .check-box{background:#fff;border-color:rgba(19,27,46,.3)}
+html[data-theme="light"] .mode-btn,html[data-theme="light"] .btn{background:#e9edf8;color:#131b2e}
+html[data-theme="light"] .btn-primary{color:#061018}
+html[data-theme="light"] .icon-btn{background:rgba(255,255,255,.9)}
+html[data-theme="light"] .toast{background:rgba(255,255,255,.96);color:#131b2e}
+html[data-theme="light"] .note{background:rgba(201,134,0,.07)}
+html[data-theme="light"] ::-webkit-scrollbar-track{background:#f3f5fb}
+html[data-theme="light"] ::-webkit-scrollbar-thumb{background:#c3cbe3;border-color:#f3f5fb}
+
+@media(max-width:640px){
+  .totals{grid-template-columns:1fr 1fr}
+  .tab-btn{padding:10px 11px;font-size:.85rem}
+  header{padding-top:58px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="corner">
+  <button id="themeToggle" class="icon-btn" aria-label="Cambiar tema" title="Cambiar tema">☀️</button>
+  <button id="soundToggle" class="icon-btn" aria-label="Sonidos" title="Sonidos">🔊</button>
+</div>
+
+<header>
+  <span class="badge">FOCOFORGE · Centro de estudio</span>
+  <h1>Tu sesión perfecta empieza aquí.</h1>
+  <p>Temporizador de enfoque, tareas, hábitos y notas en un solo lugar. Todo se guarda automáticamente en tu navegador.</p>
+  <div class="hero-stats">
+    <div class="hstat"><strong id="hMin">0</strong><span>min hoy</span></div>
+    <div class="hstat"><strong id="hSes">0</strong><span>pomodoros hoy</span></div>
+    <div class="hstat"><strong id="hPend">0</strong><span>tareas pendientes</span></div>
+    <div class="hstat"><strong id="hHab">0/0</strong><span>hábitos hoy</span></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Secciones">
+  <button class="tab-btn active" data-tab="timer">⏱️ Enfoque</button>
+  <button class="tab-btn" data-tab="tasks">✅ Tareas</button>
+  <button class="tab-btn" data-tab="habits">🔁 Hábitos</button>
+  <button class="tab-btn" data-tab="notes">📝 Notas</button>
+  <button class="tab-btn" data-tab="stats">📊 Progreso</button>
+</nav>
+
+<main>
+<!-- ============ TEMPORIZADOR ============ -->
+<section class="panel show" id="panel-timer">
+  <div class="card timer-wrap">
+    <h2>⏱️ Temporizador de enfoque</h2>
+    <p class="sub">Trabaja en bloques cortos y concentrados. Cada pomodoro de enfoque suma a tus estadísticas.</p>
+    <div class="modes" role="group" aria-label="Modo del temporizador">
+      <button class="mode-btn active" data-mode="focus">🎯 Enfoque</button>
+      <button class="mode-btn" data-mode="short">☕ Descanso</button>
+      <button class="mode-btn" data-mode="long">🛋️ Descanso largo</button>
+    </div>
+    <div class="ring-box">
+      <svg viewBox="0 0 260 260" aria-hidden="true">
+        <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6674ff"/><stop offset="1" stop-color="#43d9b2"/></linearGradient></defs>
+        <circle class="ring-bg" cx="130" cy="130" r="110"></circle>
+        <circle class="ring-fg" id="ringFg" cx="130" cy="130" r="110" stroke-dasharray="691.15" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="timer-time" id="timeText">25:00</div>
+      <div class="timer-label" id="modeLabel">enfoque</div>
+    </div>
+    <div class="timer-actions">
+      <button class="btn btn-primary" id="startBtn">▶ Iniciar</button>
+      <button class="btn" id="resetBtn">↺ Reiniciar</button>
+    </div>
+    <p class="sessions">Pomodoros completados hoy: <b id="sesToday">0</b></p>
+    <details class="settings">
+      <summary>Ajustes de duración (minutos)</summary>
+      <div class="settings-row">
+        <label>Enfoque<input class="num-input" id="dFocus" type="number" min="1" max="120" value="25"></label>
+        <label>Descanso<input class="num-input" id="dShort" type="number" min="1" max="60" value="5"></label>
+        <label>Largo<input class="num-input" id="dLong" type="number" min="1" max="90" value="15"></label>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ TAREAS ============ -->
+<section class="panel" id="panel-tasks">
+  <div class="card">
+    <h2>✅ Tareas</h2>
+    <p class="sub">Anota lo que tienes que hacer y márcalo al terminar. Pulsa Enter para añadir rápido.</p>
+    <div class="add-row">
+      <input class="txt-input" id="taskInput" type="text" placeholder="Ej.: resolver 5 ejercicios de derivadas..." maxlength="120">
+      <button class="btn btn-primary" id="taskAdd">Añadir</button>
+    </div>
+    <div class="filters" style="margin-top:12px">
+      <span style="align-self:center;font-size:.8rem;color:var(--muted);font-weight:700">Atajos:</span>
+      <button class="filter-btn" data-qtask="📈 Sesión de trading: revisar mercado y niveles">+ Trading</button>
+      <button class="filter-btn" data-qtask="🤖 Seguir con el algoritmo de trading">+ Algoritmo</button>
+      <button class="filter-btn" data-qtask="🧹 Tareas de casa">+ Casa</button>
+      <button class="filter-btn" data-qtask="✍️ Escribir el diario de trading (TradeRoom)">+ Diario</button>
+      <button class="filter-btn" data-qtask="🎯 Revisar alertas y niveles PDH/PDL del día">+ Niveles</button>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">Todas</button>
+      <button class="filter-btn" data-filter="todo">Pendientes</button>
+      <button class="filter-btn" data-filter="done">Hechas</button>
+    </div>
+    <ul class="list" id="taskList"></ul>
+    <div class="empty hidden" id="taskEmpty">No hay tareas aquí. Añade la primera arriba 👆</div>
+  </div>
+</section>
+
+<!-- ============ HÁBITOS ============ -->
+<section class="panel" id="panel-habits">
+  <div class="card">
+    <h2>🔁 Hábitos diarios</h2>
+    <p class="sub">Marca cada día que cumplas el hábito. La racha 🔥 cuenta los días seguidos hasta hoy.</p>
+    <div class="add-row">
+      <input class="txt-input" id="habitInput" type="text" placeholder="Ej.: estudiar 1 pomodoro, leer 20 min..." maxlength="80">
+      <button class="btn btn-primary" id="habitAdd">Añadir</button>
+    </div>
+    <div class="filters" style="margin-top:12px">
+      <span style="align-self:center;font-size:.8rem;color:var(--muted);font-weight:700">Atajos:</span>
+      <button class="filter-btn" data-qhabit="📈 Seguir mi plan de trading">+ Plan trading</button>
+      <button class="filter-btn" data-qhabit="🤖 Trabajar en el algoritmo 30 min">+ Algoritmo</button>
+      <button class="filter-btn" data-qhabit="🧹 Tareas de casa del día">+ Casa</button>
+      <button class="filter-btn" data-qhabit="✍️ Diario de trading escrito">+ Diario</button>
+    </div>
+    <div id="habitList"></div>
+    <div class="empty hidden" id="habitEmpty">Todavía no tienes hábitos. Crea uno y empieza tu racha 🔥</div>
+  </div>
+</section>
+
+<!-- ============ NOTAS ============ -->
+<section class="panel" id="panel-notes">
+  <div class="card">
+    <h2>📝 Notas rápidas</h2>
+    <p class="sub">Apuntes sueltos, ideas, dudas para revisar después. Ctrl+Enter también guarda.</p>
+    <div class="add-row">
+      <input class="txt-input" id="noteInput" type="text" placeholder="Ej.: repasar la regla de la cadena, pregunta de examen..." maxlength="300">
+      <button class="btn btn-primary" id="noteAdd">Guardar</button>
+    </div>
+    <div id="noteList"></div>
+    <div class="empty hidden" id="noteEmpty">Sin notas por ahora. ¡Escribe la primera! ✍️</div>
+  </div>
+</section>
+
+<!-- ============ ESTADÍSTICAS ============ -->
+<section class="panel" id="panel-stats">
+  <div class="card chart-card">
+    <h2>📊 Tu progreso</h2>
+    <p class="sub">Minutos de enfoque en los últimos 7 días.</p>
+    <canvas id="chart" width="1000" height="320" aria-label="Gráfica de minutos de estudio por día"></canvas>
+    <div class="totals">
+      <div class="total"><strong id="totMin">0</strong><span>minutos totales</span></div>
+      <div class="total"><strong id="totSes">0</strong><span>pomodoros totales</span></div>
+      <div class="total"><strong id="totDays">0</strong><span>días con enfoque</span></div>
+    </div>
+    <div class="danger-zone">
+      <span style="color:var(--muted);font-size:.88rem">¿Quieres empezar de cero?</span>
+      <button class="btn btn-danger" id="wipeBtn">🗑 Borrar todos mis datos</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>FocoForge · hecha con 💙 para estudiar mejor · tus datos nunca salen de tu navegador</footer>
+
+<script>
+"use strict";
+/* ================= utilidades ================= */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function iso(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function load(k, fb){ try { const v = JSON.parse(localStorage.getItem(k)); return v === null || v === undefined ? fb : v; } catch(e){ return fb; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function esc(s){ return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ================= sonidos ================= */
+let soundOn = true;
+try { soundOn = (localStorage.getItem("focoforge-sound") ?? "1") === "1"; } catch(e){}
+let audioCtx = null;
+function ensureAudio(){
+  if (!audioCtx){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, when, dur, vol, type){
+  if (!soundOn) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.type = type || "sine"; osc.frequency.value = freq;
+  const t = ctx.currentTime + when;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + dur + 0.05);
+}
+const playTick = () => tone(340, 0, 0.05, 0.06, "triangle");
+const playPop = () => { tone(540, 0, 0.09, 0.12); tone(830, 0.06, 0.12, 0.1); };
+const playChime = () => { [523.25, 659.25, 783.99].forEach((f,i)=>tone(f, i*0.09, 0.3, 0.1)); };
+const playAlarm = () => { [659.25, 523.25, 659.25, 783.99].forEach((f,i)=>tone(f, i*0.12, 0.22, 0.12)); };
+
+/* ================= tema y sonido (botones) ================= */
+const themeToggle = $("#themeToggle");
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  if (themeToggle) themeToggle.textContent = t === "light" ? "🌙" : "☀️";
+  try { localStorage.setItem("focoforge-theme", t); } catch(e){}
+  drawChart();
+}
+/* ojo: applyTheme se invoca al final del script, cuando los datos ya están inicializados */
+themeToggle?.addEventListener("click", () => { applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light"); playTick(); });
+
+const soundToggle = $("#soundToggle");
+function renderSound(){ if (soundToggle) soundToggle.textContent = soundOn ? "🔊" : "🔇"; }
+renderSound();
+soundToggle?.addEventListener("click", () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem("focoforge-sound", soundOn ? "1" : "0"); } catch(e){}
+  renderSound(); if (soundOn) playPop();
+});
+
+/* ================= toast + confeti ================= */
+let toastEl = null, toastTimer = null;
+function showToast(msg, ms){
+  if (!toastEl){ toastEl = document.createElement("div"); toastEl.className = "toast"; toastEl.setAttribute("role","status"); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg; toastEl.classList.add("show");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), ms || 2600);
+}
+function confetti(pieces){
+  if (REDUCED) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  const canvas = document.createElement("canvas"); canvas.className = "confetti-canvas";
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  const ctx = canvas.getContext("2d"); if (!ctx) return;
+  ctx.scale(dpr, dpr); document.body.appendChild(canvas);
+  const COLORS = ["#7c8cff","#43d9b2","#ffc857","#ff6b7a","#ffffff"];
+  const parts = [];
+  for (let i=0;i<pieces;i++) parts.push({ x:W/2+(Math.random()-0.5)*W*0.7, y:80+(Math.random()-0.5)*30, vx:(Math.random()-0.5)*9, vy:-(Math.random()*8)-2, g:0.22+Math.random()*0.18, s:4+Math.random()*5, c:COLORS[(Math.random()*COLORS.length)|0], r:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.3, life:1 });
+  let last = performance.now();
+  (function tick(now){
+    const dt = Math.min(34, now-last)/16.7; last = now;
+    ctx.clearRect(0,0,W,H);
+    let alive = false;
+    parts.forEach(p => {
+      p.vy += p.g*dt; p.vx *= 0.995; p.x += p.vx*dt; p.y += p.vy*dt; p.r += p.vr*dt; p.life -= 0.009*dt;
+      if (p.life > 0 && p.y < H+30){
+        alive = true;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life)); ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.62); ctx.restore();
+      }
+    });
+    if (alive) requestAnimationFrame(tick); else canvas.remove();
+  })(performance.now());
+}
+
+/* ================= estadísticas (datos) ================= */
+let stats = load("ff-stats", {});
+function today(){ return stats[iso(new Date())] || { min:0, ses:0 }; }
+function logFocus(minutes){
+  const k = iso(new Date());
+  if (!stats[k]) stats[k] = { min:0, ses:0 };
+  stats[k].min += minutes; stats[k].ses += 1;
+  save("ff-stats", stats);
+  renderHero(); renderTimerStats(); drawChart(); renderTotals();
+}
+
+/* ================= TEMPORIZADOR ================= */
+const CIRC = 691.15;
+const ringFg = $("#ringFg"), timeText = $("#timeText"), modeLabel = $("#modeLabel");
+const startBtn = $("#startBtn"), resetBtn = $("#resetBtn");
+const dFocus = $("#dFocus"), dShort = $("#dShort"), dLong = $("#dLong");
+const DUR_KEY = "ff-durations";
+(function loadDurations(){
+  const d = load(DUR_KEY, null);
+  if (d){ dFocus.value = d.focus; dShort.value = d.short; dLong.value = d.long; }
+})();
+function durations(){ return { focus: Math.max(1, +dFocus.value || 25), short: Math.max(1, +dShort.value || 5), long: Math.max(1, +dLong.value || 15) }; }
+[dFocus, dShort, dLong].forEach(inp => inp?.addEventListener("change", () => {
+  save(DUR_KEY, durations());
+  if (!timer.running){ timer.total = durations()[timer.mode]*60; timer.left = timer.total; renderTimer(); }
+}));
+
+const MODE_NAMES = { focus:"enfoque", short:"descanso", long:"descanso largo" };
+const timer = { mode:"focus", total: durations().focus*60, left: durations().focus*60, endAt:0, running:false, id:0 };
+
+function setMode(m){
+  timer.mode = m; timer.running = false; window.clearInterval(timer.id);
+  timer.total = durations()[m]*60; timer.left = timer.total;
+  $$(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === m));
+  modeLabel.textContent = MODE_NAMES[m];
+  startBtn.textContent = "▶ Iniciar";
+  renderTimer();
+}
+function renderTimer(){
+  const s = Math.max(0, Math.ceil(timer.left));
+  timeText.textContent = String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0");
+  ringFg.style.strokeDashoffset = String(CIRC * (1 - (timer.total ? timer.left/timer.total : 0)));
+  document.title = (timer.running ? "⏱ " + timeText.textContent + " · " : "") + "FocoForge — Tu centro de estudio";
+}
+function tickTimer(){
+  timer.left = Math.max(0, (timer.endAt - Date.now())/1000);
+  renderTimer();
+  if (timer.left <= 0) completeTimer();
+}
+function completeTimer(){
+  window.clearInterval(timer.id); timer.running = false;
+  if (timer.mode === "focus"){
+    logFocus(durations().focus);
+    showToast("🎉 ¡Pomodoro completado! +" + durations().focus + " min de enfoque. Toca descansar 😌", 4000);
+    confetti(90); playChime();
+    setMode(today().ses % 4 === 0 ? "long" : "short");
+  } else {
+    showToast("⏰ Descanso terminado. ¡A por el siguiente! 💪", 3500);
+    playAlarm();
+    setMode("focus");
+  }
+}
+startBtn?.addEventListener("click", () => {
+  playTick();
+  if (timer.running){
+    timer.running = false; window.clearInterval(timer.id);
+    startBtn.textContent = "▶ Continuar";
+  } else {
+    timer.running = true;
+    timer.endAt = Date.now() + timer.left*1000;
+    timer.id = window.setInterval(tickTimer, 250);
+    startBtn.textContent = "⏸ Pausar";
+  }
+});
+resetBtn?.addEventListener("click", () => { playTick(); setMode(timer.mode); });
+$$(".mode-btn").forEach(b => b.addEventListener("click", () => { playTick(); setMode(b.dataset.mode); }));
+function renderTimerStats(){ $("#sesToday").textContent = today().ses; }
+
+/* ================= TAREAS ================= */
+let tasks = load("ff-tasks", []);
+let taskFilter = "all";
+const taskList = $("#taskList"), taskInput = $("#taskInput"), taskEmpty = $("#taskEmpty");
+function saveTasks(){ save("ff-tasks", tasks); renderHero(); }
+function renderTasks(){
+  const shown = tasks.filter(t => taskFilter==="all" || (taskFilter==="done") === t.done);
+  taskList.innerHTML = shown.map((t) => {
+    const i = tasks.indexOf(t);
+    return '<li class="item' + (t.done ? " done" : "") + '"><input type="checkbox" class="check-box" data-i="' + i + '"' + (t.done ? " checked" : "") + ' aria-label="Marcar tarea"><span class="txt">' + esc(t.text) + '</span><button class="del-btn" data-i="' + i + '" aria-label="Eliminar tarea">✕</button></li>';
+  }).join("");
+  taskEmpty.classList.toggle("hidden", shown.length > 0);
+  taskList.querySelectorAll(".check-box").forEach(cb => cb.addEventListener("change", () => {
+    const t = tasks[+cb.dataset.i]; if (!t) return;
+    t.done = cb.checked;
+    if (t.done){ playPop(); if (tasks.every(x => x.done) && tasks.length){ showToast("🏆 ¡Todas las tareas completadas!"); confetti(70); } }
+    saveTasks(); renderTasks();
+  }));
+  taskList.querySelectorAll(".del-btn").forEach(b => b.addEventListener("click", () => {
+    tasks.splice(+b.dataset.i, 1); playTick(); saveTasks(); renderTasks();
+  }));
+}
+function addTask(text){
+  const v = (text !== undefined ? text : taskInput.value).trim(); if (!v) return;
+  tasks.push({ text: v, done: false });
+  if (text === undefined){ taskInput.value = ""; taskInput.focus(); }
+  playTick(); saveTasks(); renderTasks();
+}
+$("#taskAdd")?.addEventListener("click", () => addTask());
+$$(".filter-btn[data-qtask]").forEach(c => c.addEventListener("click", () => addTask(c.dataset.qtask)));
+taskInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addTask(); });
+$$(".filter-btn").forEach(b => b.addEventListener("click", () => {
+  taskFilter = b.dataset.filter; playTick();
+  $$(".filter-btn").forEach(x => x.classList.toggle("active", x === b));
+  renderTasks();
+}));
+
+/* ================= HÁBITOS ================= */
+let habits = load("ff-habits", []);
+const habitList = $("#habitList"), habitInput = $("#habitInput"), habitEmpty = $("#habitEmpty");
+const DAY_LETTERS = ["L","M","X","J","V","S","D"];
+function weekDates(){
+  const now = new Date(); const dow = (now.getDay() + 6) % 7; // 0=lunes
+  const monday = new Date(now); monday.setDate(now.getDate() - dow);
+  return Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
+}
+function streakOf(h){
+  let s = 0; const d = new Date();
+  if (!h.days[iso(d)]) d.setDate(d.getDate()-1); // si hoy aún no está, la racha vive en ayer
+  while (h.days[iso(d)]){ s++; d.setDate(d.getDate()-1); }
+  return s;
+}
+function saveHabits(){ save("ff-habits", habits); renderHero(); }
+function renderHabits(){
+  const week = weekDates(), todayIso = iso(new Date());
+  habitList.innerHTML = habits.map((h, hi) => {
+    const st = streakOf(h);
+    const dots = week.map((d, di) => {
+      const k = iso(d);
+      const on = !!h.days[k];
+      const future = k > todayIso;
+      return '<button class="day-dot' + (on ? " on" : "") + (k === todayIso ? " today" : "") + '" data-h="' + hi + '" data-d="' + k + '"' + (future ? " disabled" : "") + ' aria-label="Día ' + k + '"><span class="d">' + DAY_LETTERS[di] + '</span><span class="dot">' + (on ? "✓" : "") + '</span></button>';
+    }).join("");
+    return '<div class="habit"><div class="habit-head"><span class="txt">' + esc(h.name) + '</span><span class="streak-pill">🔥 ' + st + (st === 1 ? " día" : " días") + '</span><button class="del-btn" data-h="' + hi + '" aria-label="Eliminar hábito">✕</button></div><div class="week">' + dots + '</div></div>';
+  }).join("");
+  habitEmpty.classList.toggle("hidden", habits.length > 0);
+  habitList.querySelectorAll(".day-dot:not(:disabled)").forEach(b => b.addEventListener("click", () => {
+    const h = habits[+b.dataset.h]; if (!h) return;
+    const k = b.dataset.d;
+    h.days[k] = !h.days[k];
+    if (!h.days[k]) delete h.days[k];
+    if (h.days[k]) playPop(); else playTick();
+    if (k === todayIso && h.days[k] && streakOf(h) > 0 && streakOf(h) % 7 === 0){ showToast("🔥 ¡Racha de " + streakOf(h) + " días en «" + h.name + "»!"); confetti(60); }
+    saveHabits(); renderHabits();
+  }));
+  habitList.querySelectorAll(".del-btn").forEach(b => b.addEventListener("click", () => {
+    habits.splice(+b.dataset.h, 1); playTick(); saveHabits(); renderHabits();
+  }));
+}
+function addHabit(text){
+  const v = (text !== undefined ? text : habitInput.value).trim(); if (!v) return;
+  habits.push({ name: v, days: {} });
+  if (text === undefined){ habitInput.value = ""; habitInput.focus(); }
+  playTick(); saveHabits(); renderHabits();
+}
+$("#habitAdd")?.addEventListener("click", () => addHabit());
+$$(".filter-btn[data-qhabit]").forEach(c => c.addEventListener("click", () => addHabit(c.dataset.qhabit)));
+habitInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") addHabit(); });
+
+/* ================= NOTAS ================= */
+let notes = load("ff-notes", []);
+const noteList = $("#noteList"), noteInput = $("#noteInput"), noteEmpty = $("#noteEmpty");
+function renderNotes(){
+  noteList.innerHTML = notes.map((n, i) => {
+    const d = new Date(n.ts);
+    const when = d.toLocaleDateString("es-ES", { day:"numeric", month:"short" }) + " · " + d.toLocaleTimeString("es-ES", { hour:"2-digit", minute:"2-digit" });
+    return '<div class="note"><button class="del-btn" data-i="' + i + '" aria-label="Eliminar nota">✕</button><div class="txt">' + esc(n.text) + '</div><span class="when">' + when + '</span></div>';
+  }).join("");
+  noteEmpty.classList.toggle("hidden", notes.length > 0);
+  noteList.querySelectorAll(".del-btn").forEach(b => b.addEventListener("click", () => {
+    notes.splice(+b.dataset.i, 1); playTick(); save("ff-notes", notes); renderNotes();
+  }));
+}
+function addNote(){
+  const v = noteInput.value.trim(); if (!v) return;
+  notes.unshift({ text: v, ts: Date.now() });
+  noteInput.value = ""; noteInput.focus();
+  playTick(); save("ff-notes", notes); renderNotes();
+}
+$("#noteAdd")?.addEventListener("click", addNote);
+noteInput?.addEventListener("keydown", (e) => { if ((e.key === "Enter" && (e.ctrlKey || e.metaKey)) || (e.key === "Enter" && !e.shiftKey)) addNote(); });
+
+/* ================= GRÁFICA ================= */
+const chart = $("#chart");
+function drawChart(){
+  if (!chart) return;
+  const ctx = chart.getContext("2d"); if (!ctx) return;
+  const W = chart.width, H = chart.height;
+  const light = document.documentElement.dataset.theme === "light";
+  ctx.clearRect(0,0,W,H);
+  const days = [];
+  for (let i=6;i>=0;i--){ const d = new Date(); d.setDate(d.getDate()-i); days.push(d); }
+  const vals = days.map(d => (stats[iso(d)] || {min:0}).min);
+  const max = Math.max(30, ...vals);
+  const padL = 40, padB = 34, padT = 14, padR = 10;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  ctx.strokeStyle = light ? "rgba(19,27,46,.15)" : "rgba(255,255,255,.12)";
+  ctx.fillStyle = light ? "rgba(19,27,46,.55)" : "rgba(255,255,255,.45)";
+  ctx.font = "20px JetBrains Mono, monospace";
+  ctx.lineWidth = 1;
+  [0, .5, 1].forEach(t => {
+    const y = padT + plotH*(1-t);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
+    ctx.fillText(Math.round(max*t) + "", 2, y+7);
+  });
+  const bw = plotW/7 * 0.55;
+  days.forEach((d, i) => {
+    const v = vals[i];
+    const h = plotH * (v/max);
+    const x = padL + plotW*(i + 0.5)/7 - bw/2;
+    const y = padT + plotH - h;
+    const grad = ctx.createLinearGradient(0, y, 0, padT+plotH);
+    grad.addColorStop(0, "#7c8cff"); grad.addColorStop(1, "#43d9b2");
+    ctx.fillStyle = v > 0 ? grad : (light ? "rgba(19,27,46,.08)" : "rgba(255,255,255,.07)");
+    const r = Math.min(9, bw/2);
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, Math.max(y, padT+plotH-4), bw, Math.max(4, h), [r,r,0,0]);
+    else ctx.rect(x, Math.max(y, padT+plotH-4), bw, Math.max(4, h));
+    ctx.fill();
+    ctx.fillStyle = light ? "rgba(19,27,46,.55)" : "rgba(255,255,255,.5)";
+    ctx.textAlign = "center";
+    ctx.fillText(DAY_LETTERS[(d.getDay()+6)%7], padL + plotW*(i+0.5)/7, H-10);
+    if (v > 0){ ctx.fillStyle = light ? "#0d9e7b" : "#aeeedc"; ctx.fillText(String(v), padL + plotW*(i+0.5)/7, Math.max(y-6, 16)); }
+    ctx.textAlign = "left";
+  });
+}
+function renderTotals(){
+  const ks = Object.keys(stats);
+  $("#totMin").textContent = ks.reduce((a,k) => a + stats[k].min, 0);
+  $("#totSes").textContent = ks.reduce((a,k) => a + stats[k].ses, 0);
+  $("#totDays").textContent = ks.filter(k => stats[k].min > 0).length;
+}
+$("#wipeBtn")?.addEventListener("click", () => {
+  if (!confirm("¿Borrar TODOS los datos de FocoForge (tareas, hábitos, notas y estadísticas)?")) return;
+  ["ff-tasks","ff-habits","ff-notes","ff-stats","ff-durations"].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+  tasks = []; habits = []; notes = []; stats = {};
+  renderTasks(); renderHabits(); renderNotes(); renderHero(); renderTimerStats(); drawChart(); renderTotals();
+  setMode("focus");
+  showToast("🧹 Datos borrados. ¡Empezamos de cero!");
+});
+
+/* ================= pestañas ================= */
+$$(".tab-btn").forEach(b => b.addEventListener("click", () => {
+  playTick();
+  $$(".tab-btn").forEach(x => x.classList.toggle("active", x === b));
+  $$(".panel").forEach(p => p.classList.toggle("show", p.id === "panel-" + b.dataset.tab));
+  if (b.dataset.tab === "stats") drawChart();
+}));
+
+/* ================= hero ================= */
+function renderHero(){
+  const t = today();
+  $("#hMin").textContent = t.min;
+  $("#hSes").textContent = t.ses;
+  $("#hPend").textContent = tasks.filter(x => !x.done).length;
+  const k = iso(new Date());
+  const done = habits.filter(h => h.days[k]).length;
+  $("#hHab").textContent = done + "/" + habits.length;
+}
+
+/* ================= arranque ================= */
+renderTasks(); renderHabits(); renderNotes();
+renderHero(); renderTimerStats(); renderTotals(); drawChart(); renderTimer();
+applyTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+window.addEventListener("resize", drawChart);
+</script>
+</body>
+</html>
