@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORION ENGINE — plataforma de backtesting</title>
+<style>
+  :root{
+    --bg:#0a0b10; --panel:#10121b; --panel2:#151826; --line:#232741;
+    --txt:#dfe4f5; --mut:#767da6; --acc:#6ee7ff; --acc2:#a78bfa; --amber:#fbbf24;
+    --ok:#34d399; --warn:#fbbf24; --bad:#fb7185; --mono:'JetBrains Mono','Cascadia Code',Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse 50% 35% at 75% -5%,rgba(103,231,255,.06),transparent),
+               radial-gradient(ellipse 40% 30% at 5% 100%,rgba(167,139,250,.05),transparent)}
+  .wrap{max-width:1220px;margin:0 auto;padding:26px 20px 70px;position:relative}
+  /* entrada escalonada */
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .rise{opacity:0;animation:rise .55s cubic-bezier(.2,.7,.3,1) forwards}
+  header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+  header h1{font-family:var(--mono);font-size:1.35rem;letter-spacing:2px}
+  header h1 .o{color:var(--acc)} header h1 .e{color:var(--acc2)}
+  header .sub{font-family:var(--mono);font-size:.72rem;color:var(--mut);letter-spacing:.5px}
+  .grid{display:grid;grid-template-columns:380px 1fr;gap:16px}
+  @media (max-width:1000px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .card h2{font-family:var(--mono);font-size:.8rem;letter-spacing:1.5px;color:var(--acc);
+    text-transform:uppercase;margin-bottom:14px;display:flex;gap:8px;align-items:center}
+  .card h2::before{content:"▮";color:var(--acc2);font-size:.7rem}
+  label{display:block;font-family:var(--mono);font-size:.66rem;color:var(--mut);letter-spacing:1px;
+    text-transform:uppercase;margin:12px 0 5px}
+  select,input[type=text],input[type=number]{width:100%;background:#0003;border:1px solid var(--line);
+    color:var(--txt);border-radius:9px;padding:10px 12px;font-family:var(--mono);font-size:.82rem}
+  textarea{width:100%;min-height:300px;background:#07080d;border:1px solid var(--line);color:#c9d4ff;
+    border-radius:10px;padding:12px;font-family:var(--mono);font-size:.78rem;line-height:1.55;resize:vertical;tab-size:4}
+  .drop{border:1.5px dashed var(--line);border-radius:12px;padding:22px 14px;text-align:center;cursor:pointer;
+    font-family:var(--mono);font-size:.76rem;color:var(--mut);transition:.2s;background:#0002}
+  .drop:hover,.drop.over{border-color:var(--acc);color:var(--acc);background:rgba(103,231,255,.04)}
+  .btn{width:100%;cursor:pointer;border:0;border-radius:10px;padding:13px;font-family:var(--mono);
+    font-size:.85rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#061018;
+    background:linear-gradient(100deg,#6ee7ff,#a78bfa);transition:.15s}
+  .btn:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.ghost{background:#1a1e2f;color:var(--txt);border:1px solid var(--line);font-size:.72rem;padding:9px;font-weight:400}
+  /* terminal en vivo */
+  #term{background:#05060a;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    font-family:var(--mono);font-size:.72rem;line-height:1.8;min-height:130px;max-height:190px;
+    overflow-y:auto;color:#9fe8b1}
+  #term .t{color:#5b647f} #term .err{color:var(--bad)}
+  .fases{display:flex;gap:6px;margin:12px 0}
+  .fase{flex:1;height:5px;border-radius:99px;background:#1a1e2f;position:relative;overflow:hidden}
+  .fase.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#6ee7ff,#a78bfa);
+    animation:pulse 1s infinite alternate}
+  .fase.done{background:var(--ok)}
+  @keyframes pulse{from{opacity:.5}to{opacity:1}}
+  .barra{height:7px;background:#1a1e2f;border-radius:99px;overflow:hidden;margin-top:8px}
+  .barra b{display:block;height:100%;background:linear-gradient(90deg,#6ee7ff,#a78bfa);width:0;transition:width .3s}
+  .parciales{display:flex;gap:10px;margin-top:10px;font-family:var(--mono);font-size:.72rem;color:var(--mut)}
+  .parciales b{color:var(--acc)}
+  /* resultados */
+  #res{display:none}
+  .verdict{border-radius:12px;padding:14px 18px;font-family:var(--mono);font-weight:700;letter-spacing:1px;
+    margin-bottom:16px;border:1px solid var(--line)}
+  .v-ok{background:#0a2018;color:#6ee7b7;border-color:#14532d}
+  .v-warn{background:#241a06;color:#fcd34d;border-color:#5c4011}
+  .v-bad{background:#260a10;color:#fda4af;border-color:#5c1f28}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:9px}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .kpi span{display:block;font-family:var(--mono);font-size:.6rem;color:var(--mut);letter-spacing:1px;text-transform:uppercase}
+  .kpi b{display:block;font-family:var(--mono);font-size:1.14rem;margin-top:3px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .acc{color:var(--acc)} .pur{color:var(--acc2)}
+  canvas{width:100%;background:#07080d;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--mut);font-size:.6rem;letter-spacing:1px;text-transform:uppercase}
+  .issue{border-left:3px solid var(--bad);background:#1b0e13;border-radius:8px;padding:9px 12px;margin:7px 0;
+    font-size:.8rem;line-height:1.5}
+  .issue.amber{border-color:var(--amber);background:#1b160b}
+  .issue.blue{border-color:var(--acc);background:#0b1320}
+  .tag{display:inline-block;border-radius:99px;padding:2px 9px;font-family:var(--mono);font-size:.62rem;font-weight:700}
+  .t-ok{background:#0a2018;color:#6ee7b7}.t-warn{background:#241a06;color:#fcd34d}.t-bad{background:#260a10;color:#fda4af}
+  .ioss{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ios{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px;font-family:var(--mono);font-size:.76rem}
+  .ios h3{font-size:.66rem;color:var(--mut);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .filtros select{width:auto;padding:6px 10px;font-size:.7rem}
+  .mini{font-family:var(--mono);font-size:.64rem;color:var(--mut);margin-top:8px;line-height:1.6}
+  .hist-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--line);
+    border-radius:9px;margin:6px 0;font-family:var(--mono);font-size:.7rem;cursor:pointer}
+  .hist-item:hover{border-color:var(--acc)}
+  details{margin-top:10px} summary{cursor:pointer;font-family:var(--mono);font-size:.72rem;color:var(--acc)}
+  .scrolltab{max-height:330px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="rise">
+    <h1>◈ <span class="o">ORION</span> <span class="e">ENGINE</span></h1>
+    <div class="sub">backtesting real · anti-lookahead por diseño · anti-overfit 70/30 · 100% local</div>
+  </header>
+
+  <div class="grid">
+    <!-- ============ IZQUIERDA: configuración ============ -->
+    <section>
+      <div class="card rise" style="animation-delay:.08s">
+        <h2>① dataset OHLCV</h2>
+        <div class="drop" id="drop">⤓ arrastra tu CSV de MT5 aquí<br><span style="font-size:.62rem">(o haz clic · &lt;DATE&gt;;&lt;TIME&gt;;&lt;OPEN&gt;… o date,open,high,low,close)</span>
+          <input type="file" id="csvInput" accept=".csv" style="display:none">
+        </div>
+        <div id="dsInfo" class="mini"></div>
+        <div id="dsErrores"></div>
+        <label>datasets guardados</label>
+        <select id="dsLista"><option value="">— ninguno —</option></select>
+      </div>
+
+      <div class="card rise" style="animation-delay:.16s">
+        <h2>② estrategia python</h2>
+        <textarea id="codigo" spellcheck="false"># Interfaz: def on_bar(i, velas) → 1 (largo) / -1 (corto) / 0
+# velas SOLO deja leer el pasado (0..i): pedir velas[i+1] = error de lookahead.
+# Gratis: ema sma rsi atr maximo minimo · Params en MAYÚSCULAS se testean ±25%.
+PERIODO_RAPIDA = 9
+PERIODO_LENTA  = 21
+STOP_ATR   = 2.0
+TAKE_ATR   = 3.0
+RIESGO_PCT = 1.0
+
+def on_bar(i, velas):
+    if i < PERIODO_LENTA + 5:
+        return 0
+    cierres = [v["c"] for v in velas]
+    ra, la = ema(cierres[:-1], PERIODO_RAPIDA), ema(cierres[:-1], PERIODO_LENTA)
+    rb, lb = ema(cierres, PERIODO_RAPIDA),      ema(cierres, PERIODO_LENTA)
+    if ra <= la and rb > lb:  return 1
+    if ra >= la and rb < lb:  return -1
+    return 0</textarea>
+        <div class="filtros" style="margin-top:10px">
+          <button class="btn ghost" id="btnValidar">⌗ validar sintaxis/sandbox</button>
+          <button class="btn ghost" id="btnPy">📂 subir .py</button>
+          <input type="file" id="pyInput" accept=".py,.txt" style="display:none">
+        </div>
+        <div id="pyErrores"></div>
+        <label>spread (puntos)</label>
+        <input type="number" id="spread" value="0.5" step="0.1" min="0">
+      </div>
+
+      <div class="rise" style="animation-delay:.24s">
+        <button class="btn" id="btnRun">▶ ejecutar backtest</button>
+      </div>
+
+      <div class="card rise" style="animation-delay:.3s">
+        <h2>③ ejecución en vivo</h2>
+        <div class="fases" id="fases">
+          <div class="fase" data-f="cargando datos"></div>
+          <div class="fase" data-f="validando estrategia"></div>
+          <div class="fase" data-f="simulando bar a bar"></div>
+          <div class="fase" data-f="calculando métricas"></div>
+          <div class="fase" data-f="anti-overfit"></div>
+          <div class="fase" data-f="completado"></div>
+        </div>
+        <div id="term"><span class="t">// Orion Engine listo. Sube un dataset y dispara. //</span></div>
+        <div class="barra"><b id="barra"></b></div>
+        <div class="parciales" id="parciales"></div>
+      </div>
+
+      <div class="card rise" style="animation-delay:.36s">
+        <h2>④ historial de runs</h2>
+        <div id="historial"><span class="mini">sin runs todavía</span></div>
+      </div>
+    </section>
+
+    <!-- ============ DERECHA: resultados ============ -->
+    <section id="res">
+      <div class="verdict" id="verdict"></div>
+
+      <div class="card rise">
+        <h2>métricas reales</h2>
+        <div class="kpis" id="kpis"></div>
+        <div class="mini" id="kpisSub"></div>
+      </div>
+
+      <div class="card rise" style="animation-delay:.06s">
+        <h2>equity curve (base 100, riesgo compuesto)</h2>
+        <canvas id="equity" width="900" height="240"></canvas>
+      </div>
+
+      <div class="card rise" style="animation-delay:.1s">
+        <h2>🛡️ in-sample vs out-of-sample (siempre lado a lado)</h2>
+        <div class="ioss" id="ioss"></div>
+        <div id="sensTabla" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card rise" style="animation-delay:.14s">
+        <h2>MAE / MFE real por operación</h2>
+        <canvas id="scatter" width="900" height="280"></canvas>
+        <div class="mini">cada punto = 1 trade · eje X = peor excursión (MAE) · eje Y = mejor excursión (MFE) ·
+        verde = ganadora, rojo = perdedora · mucha nube arriba-izquierda = ganancia dejada en la mesa (salidas rápidas)</div>
+      </div>
+
+      <div class="card rise" style="animation-delay:.18s">
+        <h2>desglose</h2>
+        <div class="ioss" id="desglose"></div>
+      </div>
+
+      <div class="card rise" style="animation-delay:.22s">
+        <h2>problemas &amp; avisos</h2>
+        <div id="problemas"></div>
+      </div>
+
+      <div class="card rise" style="animation-delay:.26s">
+        <h2>operaciones</h2>
+        <div class="filtros">
+          <select id="fDir"><option value="">dir: todas</option><option value="1">largos</option><option value="-1">cortos</option></select>
+          <select id="fRes"><option value="">resultado: todos</option><option value="w">ganadas</option><option value="l">perdidas</option></select>
+          <select id="fMot"><option value="">motivo: todos</option><option value="SL">stop</option><option value="TP">take</option><option value="señal contraria">señal</option><option value="fin de datos">fin datos</option></select>
+        </div>
+        <div class="scrolltab">
+        <table><thead><tr><th>#</th><th>entrada</th><th>salida</th><th>dir</th><th>pts</th><th>P&amp;L</th><th>MAE</th><th>MFE</th><th>motivo</th><th>sesión</th></tr></thead>
+        <tbody id="tablaTrades"></tbody></table>
+        </div>
+      </div>
+    </section>
+  </div>
+  <p class="mini" style="text-align:center;margin-top:20px">ORION ENGINE corre 100% en tu máquina · los datos y tu código nunca salen de ella ·
+     fases siguientes: grid de parámetros + heatmap · walk-forward · Monte Carlo · puente MT5/MQ5</p>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const fmt = (x, d=2) => typeof x === "number" ? x.toLocaleString("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d}) : x;
+let TRADES = [];
+
+/* ---------- terminal en vivo ---------- */
+function tlog(msg, cls){
+  const el = document.createElement("div");
+  if (cls) el.className = cls;
+  el.textContent = msg;
+  $("term").appendChild(el);
+  $("term").scrollTop = $("term").scrollHeight;
+}
+function resetTerm(){ $("term").innerHTML = ""; }
+const ORDEN_FASES = ["cargando datos","validando estrategia","simulando bar a bar","calculando métricas","anti-overfit","completado"];
+function pintaFase(fase, pct, parcial){
+  let visto = false;
+  document.querySelectorAll(".fase").forEach(el => {
+    const f = el.dataset.f;
+    el.className = "fase";
+    if (f === fase){ el.classList.add(pct >= 100 || fase === "completado" ? "done" : "on"); visto = true; }
+    else if (!visto && ORDEN_FASES.indexOf(f) < ORDEN_FASES.indexOf(fase)) el.classList.add("done");
+  });
+  $("barra").style.width = (pct || 0) + "%";
+  if (parcial){
+    $("parciales").innerHTML = Object.entries(parcial).map(([k,v]) => `<span>${k}: <b>${v}</b></span>`).join("");
+  }
+}
+
+/* ---------- dataset ---------- */
+async function subirCSV(file){
+  resetTerm(); tlog("⤓ subiendo " + file.name + " (" + Math.round(file.size/1024) + " KB)…");
+  const txt = await file.text();
+  const r = await fetch("/api/dataset?nombre=" + encodeURIComponent(file.name), {method: "POST", body: txt});
+  const j = await r.json();
+  if (!j.ok){
+    $("dsInfo").innerHTML = "";
+    $("dsErrores").innerHTML = j.errores.map(e =>
+      `<div class="issue">#${e.n} · línea ${e.linea} · <b>${e.causa}</b><br>${e.detalle}</div>`).join("");
+    tlog("❌ dataset RECHAZADO: " + j.errores.length + " problema(s)", "err");
+    return;
+  }
+  $("dsErrores").innerHTML = "";
+  $("dsInfo").innerHTML =
+    `✔ <b style="color:var(--ok)">${j.nombre || file.name}</b> · ${fmt(j.filas,0)} velas · ${j.tf} · ${j.ini} → ${j.fin}` +
+    j.warnings.map(w => `<br>⚠️ ${w}`).join("");
+  tlog("✔ dataset aceptado: " + fmt(j.filas,0) + " velas (" + j.tf + ")");
+  j.warnings.forEach(w => tlog("  ⚠️ " + w));
+  await cargarDatasets(j.id);
+}
+async function cargarDatasets(selId){
+  const r = await fetch("/api/datasets"); const ds = await r.json();
+  $("dsLista").innerHTML = ds.map(d =>
+    `<option value="${d.id}">${d.nombre} · ${fmt(d.filas,0)} velas · ${d.tf}</option>`).join("") || '<option value="">— ninguno —</option>';
+  if (selId) $("dsLista").value = selId;
+}
+const drop = $("drop");
+drop.addEventListener("click", () => $("csvInput").click());
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over");
+  if (e.dataTransfer.files[0]) subirCSV(e.dataTransfer.files[0]); });
+$("csvInput").addEventListener("change", e => { if (e.target.files[0]) subirCSV(e.target.files[0]); });
+
+/* ---------- estrategia ---------- */
+$("pyInput").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { $("codigo").value = rd.result; tlog("🐍 estrategia cargada: " + f.name); };
+  rd.readAsText(f);
+});
+$("btnPy").addEventListener("click", () => $("pyInput").click());
+$("btnValidar").addEventListener("click", async () => {
+  const r = await fetch("/api/estrategia/validar", {method: "POST", body: $("codigo").value});
+  const j = await r.json();
+  if (j.ok) $("pyErrores").innerHTML = `<div class="issue blue">✔ código válido: sintaxis OK, sandbox OK, interfaz on_bar presente.</div>`;
+  else $("pyErrores").innerHTML = j.errores.map(e =>
+    `<div class="issue">#${e.n} · línea ${e.linea} · <b>${e.causa}</b><br>${e.detalle}</div>`).join("");
+});
+
+/* ---------- run ---------- */
+let polling = null;
+$("btnRun").addEventListener("click", async () => {
+  const dsId = $("dsLista").value;
+  if (!dsId){ tlog("❌ elige o sube un dataset primero", "err"); return; }
+  $("btnRun").disabled = true; $("res").style.display = "none";
+  resetTerm();
+  tlog("▶ lanzando backtest aislado (subproceso · timeout 240 s)…");
+  const r = await fetch("/api/run", {method: "POST",
+    body: JSON.stringify({dataset_id: dsId, codigo: $("codigo").value, spread: parseFloat($("spread").value || 0)})});
+  const j = await r.json();
+  if (!j.ok){ tlog("❌ " + j.error, "err"); $("btnRun").disabled = false; return; }
+  let logVisto = 0;
+  polling = setInterval(async () => {
+    try {
+      const st = await (await fetch("/api/run/" + j.run_id + "/status")).json();
+      (st.log || []).slice(logVisto).forEach(l => tlog(l.replace(/^\[\d+:\d+:\d+\] /, "")));
+      logVisto = (st.log || []).length;
+      pintaFase(st.fase, st.pct, st.parcial);
+      if (st.fase === "completado" || st.fase === "rechazado" || (st.pct >= 100)){
+        clearInterval(polling); polling = null;
+        const res = await (await fetch("/api/run/" + j.run_id)).json();
+        $("btnRun").disabled = false;
+        if (!res.ok){
+          if (res.errores){
+            res.errores.forEach(e => tlog("#" + e.n + " línea " + e.linea + ": " + e.causa + " — " + e.detalle, "err"));
+            $("problemas").innerHTML = res.errores.map(e =>
+              `<div class="issue">#${e.n} · línea ${e.linea} · <b>${e.causa}</b><br>${e.detalle}</div>`).join("");
+            $("res").style.display = "block";
+            ["kpis","kpisSub","ioss","sensTabla","problemasCard","desglose"].forEach(id => { const el = $(id); if (el && id !== "problemas") el.innerHTML = ""; });
+            $("verdict").className = "verdict v-bad"; $("verdict").textContent = "❌ ESTRATEGIA RECHAZADA — corrige y vuelve";
+            document.querySelectorAll("#res .card").forEach((c, i) => { if (i > 0 && i < 5) c.style.display = "none"; });
+          } else tlog("…", "t");
+          return;
+        }
+        pintarResultado(res);
+      }
+    } catch(e){ /* reintenta en el siguiente tick */ }
+  }, 700);
+});
+
+/* ---------- render resultado ---------- */
+function pintarResultado(r){
+  document.querySelectorAll("#res .card").forEach(c => c.style.display = "block");
+  $("res").style.display = "block";
+  const v = r.veredicto;
+  $("verdict").className = "verdict " + (v.cls === "ok" ? "v-ok" : v.cls === "bad" ? "v-bad" : "v-warn");
+  $("verdict").textContent = (v.cls === "ok" ? "✅ " : v.cls === "bad" ? "❌ " : "⚠️ ") + v.texto +
+    `  ·  PF ${fmt(r.m.pf)} · ${r.m.trades} ops · ${r.dataset.velas} velas (${r.dataset.ini} → ${r.dataset.fin})`;
+  const m = r.m;
+  const cls = (x, b) => x >= b ? "ok" : (x >= b*0.7 ? "warn" : "bad");
+  $("kpis").innerHTML = [
+    ["win rate", m.wr, m.wr >= 50 ? "ok" : "warn", fmt(m.wr,1)+"%"],
+    ["profit factor", m.pf, cls(m.pf,1.3), fmt(m.pf)],
+    ["expectativa", m.expect_pts, m.expect_pts>0?"ok":"bad", (m.expect_pts>=0?"+":"")+fmt(m.expect_pts)+" pts"],
+    ["retorno", m.ret_pct, m.ret_pct>=0?"ok":"bad", (m.ret_pct>=0?"+":"")+fmt(m.ret_pct,1)+"%"],
+    ["max DD", m.mdd, m.mdd<=15?"ok":(m.mdd<=25?"warn":"bad"), fmt(m.mdd,1)+"%"],
+    ["sharpe", m.sharpe, m.sharpe>=1?"ok":(m.sharpe>=0?"warn":"bad"), fmt(m.sharpe)],
+    ["sortino", m.sortino, m.sortino>=1?"ok":(m.sortino>=0?"warn":"bad"), fmt(m.sortino)],
+    ["MAE medio", m.mae_medio, "warn", fmt(m.mae_medio)],
+    ["MFE medio", m.mfe_medio, "ok", "+"+fmt(m.mfe_medio)],
+    ["MFE/MAE", m.ratio_mfe_mae, m.ratio_mfe_mae>=1?"ok":"warn", fmt(m.ratio_mfe_mae)],
+    ["racha neg.", m.max_racha_neg, m.max_racha_neg<6?"ok":"warn", m.max_racha_neg],
+    ["buy&hold", m.buyhold, "acc", (m.buyhold>=0?"+":"")+fmt(m.buyhold,1)+"%"],
+  ].map(([t,x,c,s]) => `<div class="kpi"><span>${t}</span><b class="${c}">${s}</b></div>`).join("");
+  $("kpisSub").textContent =
+    `${fmt(m.ops_anyo,1)} ops/año · duración media ${fmt(m.barras_media,0)} barras · cierres SL ${m.sl} / TP ${m.tp} / señal ${m.flip}` +
+    ` · ${r.n_params} parámetro(s) ajustables · peor racha en DD: ${m.dd_barras} operaciones`;
+
+  equityChart(r.curva);
+  scatterChart(r.scatter);
+
+  const io = r.is_oos;
+  const mk = (t, d, borde) => d ? `<div class="ios" style="border-color:${borde}">
+      <h3>${t}</h3>PF <b>${fmt(d.pf)}</b> · ${d.trades} ops · retorno <b>${d.ret>=0?"+":""}${d.ret}%</b></div>`
+    : `<div class="ios"><h3>${t}</h3>apenas operó: amplía el histórico</div>`;
+  const alarma = io.is_m && io.os_m && io.is_m.pf >= 1.2 && io.os_m.pf < 1;
+  $("ioss").innerHTML = mk("📗 in-sample (70%)", io.is_m, "var(--line)") +
+                        mk("🛡️ out-of-sample (30% ciego)", io.os_m, alarma ? "var(--bad)" : "var(--line)") +
+    (alarma ? `<div class="issue" style="grid-column:1/-1">🚨 SOBREAJUSTE: funciona de memoria en el 70% y pierde en el 30% final. Simplifica, no reoptimices.</div>` : "");
+  if (r.sens && r.sens.length){
+    const tag = {"frágil":'<span class="tag t-bad">frágil</span>',"sensible":'<span class="tag t-warn">sensible</span>',
+                 "estable":'<span class="tag t-ok">estable</span>',"tenso":'<span class="tag t-warn">tenso</span>'};
+    $("sensTabla").innerHTML = `<div class="mini" style="margin-bottom:6px">sensibilidad ±25% (re-runs reales por parámetro):</div>
+      <table><thead><tr><th>parámetro</th><th>valor</th><th>PF ±25%</th><th>estado</th></tr></thead><tbody>` +
+      r.sens.map(s => `<tr><td>${s.nombre}</td><td>${s.valor}</td>
+        <td>${s.lo === null ? "—" : fmt(s.lo)+" ~ "+fmt(s.hi)}</td><td>${tag[s.estado] || s.estado}</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+
+  const tdir = Object.entries(r.por_dir || {}).map(([k,d]) =>
+    `<div class="ios"><h3>${k==="largo"?"▲ largos":"▼ cortos"}</h3>${d.n} ops · WR ${fmt(d.n?d.wins/d.n*100:0,1)}% · ${d.pts>=0?"+":""}${fmt(d.pts,1)} pts</div>`).join("");
+  const tses = Object.entries(r.por_sesion || {}).map(([k,d]) =>
+    `<div class="ios"><h3>🕐 ${k}</h3>${d.n} ops · WR ${fmt(d.n?d.wins/d.n*100:0,1)}% · ${d.pts>=0?"+":""}${fmt(d.pts,1)} pts</div>`).join("");
+  $("desglose").innerHTML = tdir + tses;
+
+  $("problemas").innerHTML =
+    (r.avisado || []).map(a => `<div class="issue amber">ℹ️ al importar: ${a}</div>`).join("") +
+    r.problemas.map(p => `<div class="issue">🚨 ${p}</div>`).join("") +
+    r.avisos.map(a => `<div class="issue amber">⚠️ ${a}</div>`).join("") ||
+    `<div class="issue blue">✨ Limpio. Ahora: forward-test en demo antes de arriesgar un euro.</div>`;
+
+  TRADES = r.trades || [];
+  pintaTrades();
+  cargarHistorial();
+  $("res").scrollIntoView({behavior:"smooth"});
+}
+
+function pintaTrades(){
+  const d = $("fDir").value, s = $("fRes").value, mo = $("fMot").value;
+  $("tablaTrades").innerHTML = TRADES.map((t, i) => ({...t, i}))
+    .filter(t => (!d || String(t.dir) === d) && (!s || (s === "w" ? t.pts > 0 : t.pts <= 0)) && (!mo || t.motivo === mo))
+    .slice(-300).reverse()
+    .map(t => { const c = t.pts > 0 ? "ok" : "bad"; return `<tr>
+      <td>${t.i+1}</td><td>${t.fecha_e}</td><td>${t.fecha_s}</td>
+      <td>${t.dir === 1 ? "▲" : "▼"}</td>
+      <td class="${c}">${t.pts>0?"+":""}${t.pts}</td>
+      <td class="${c}">${t.pnl_pct>0?"+":""}${t.pnl_pct}%</td>
+      <td class="warn">${t.mae}</td><td class="ok">${t.mfe}</td>
+      <td>${t.motivo}</td><td>${t.sesion}</td></tr>`; }).join("");
+}
+["fDir","fRes","fMot"].forEach(id => $(id).addEventListener("change", pintaTrades));
+
+/* ---------- gráficos ---------- */
+function equityChart(curva){
+  const c = $("equity"), ctx = c.getContext("2d"), W = c.width, H = c.height;
+  ctx.clearRect(0,0,W,H);
+  if (!curva || curva.length < 2) return;
+  const pL = 50, pR = 60, pT = 14, pB = 22;
+  const mn = Math.min(...curva, 100), mx = Math.max(...curva, 100), sp = (mx - mn) || 1;
+  const X = i => pL + (W - pL - pR) * i / (curva.length - 1);
+  const Y = v => pT + (H - pT - pB) * (1 - (v - mn) / sp * .92 - .04);
+  ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.fillStyle = "#767da6";
+  ctx.font = "10px " + getComputedStyle(document.body).getPropertyValue("--mono");
+  ctx.textAlign = "right";
+  for (let g = 0; g <= 4; g++){
+    const v = mn + sp*g/4, y = Y(v);
+    ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(W-pR,y); ctx.stroke();
+    ctx.fillText(v.toFixed(1), pL-8, y+4);
+  }
+  if (mn < 100 && mx > 100){
+    ctx.strokeStyle = "rgba(251,113,133,.45)"; ctx.setLineDash([5,5]);
+    ctx.beginPath(); ctx.moveTo(pL,Y(100)); ctx.lineTo(W-pR,Y(100)); ctx.stroke(); ctx.setLineDash([]);
+  }
+  const up = curva[curva.length-1] >= 100, col = up ? "#34d399" : "#fb7185";
+  const gr = ctx.createLinearGradient(0,pT,0,H-pB);
+  gr.addColorStop(0, up ? "rgba(52,211,153,.28)" : "rgba(251,113,133,.28)"); gr.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.beginPath(); ctx.moveTo(X(0), Y(curva[0]));
+  curva.forEach((v,i) => ctx.lineTo(X(i), Y(v)));
+  ctx.lineTo(X(curva.length-1), H-pB); ctx.lineTo(X(0), H-pB); ctx.closePath();
+  ctx.fillStyle = gr; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(X(0), Y(curva[0]));
+  curva.forEach((v,i) => ctx.lineTo(X(i), Y(v)));
+  ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = col; ctx.textAlign = "left";
+  ctx.font = "700 12px monospace";
+  ctx.fillText(curva[curva.length-1].toFixed(1), W - pR + 8, Y(curva[curva.length-1]) + 4);
+}
+function scatterChart(puntos){
+  const c = $("scatter"), ctx = c.getContext("2d"), W = c.width, H = c.height;
+  ctx.clearRect(0,0,W,H);
+  if (!puntos || !puntos.length) return;
+  const pL = 50, pR = 20, pT = 14, pB = 30;
+  const xs = puntos.map(p => p.mae), ys = puntos.map(p => p.mfe);
+  const mnX = Math.min(...xs, 0), mxX = Math.max(...xs, 0), mnY = Math.min(...ys, 0), mxY = Math.max(...ys, 0);
+  const X = v => pL + (W - pL - pR) * (v - mnX) / ((mxX - mnX) || 1);
+  const Y = v => pT + (H - pT - pB) * (1 - (v - mnY) / ((mxY - mnY) || 1));
+  ctx.strokeStyle = "rgba(255,255,255,.06)";
+  for (let g = 0; g <= 4; g++){
+    const y = pT + (H-pT-pB)*g/4; ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(W-pR,y); ctx.stroke();
+  }
+  if (mnX < 0 && mxX > 0){
+    ctx.strokeStyle = "rgba(255,255,255,.2)"; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(X(0),pT); ctx.lineTo(X(0),H-pB); ctx.stroke(); ctx.setLineDash([]);
+  }
+  puntos.forEach(p => {
+    ctx.fillStyle = p.win ? "rgba(52,211,153,.75)" : "rgba(251,113,133,.75)";
+    ctx.beginPath(); ctx.arc(X(p.mae), Y(p.mfe), 3.4, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.fillStyle = "#767da6"; ctx.font = "10px monospace";
+  ctx.textAlign = "center"; ctx.fillText("MAE →", W/2, H-8);
+  ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2); ctx.fillText("MFE →", 0, 0); ctx.restore();
+}
+
+/* ---------- historial ---------- */
+async function cargarHistorial(){
+  const r = await fetch("/api/runs"); const runs = await r.json();
+  $("historial").innerHTML = runs.map(x => {
+    const c = x.clase === "ok" ? "t-ok" : x.clase === "warn" ? "t-warn" : "t-bad";
+    return `<div class="hist-item" data-id="${x.id}">
+      <span>${(x.creado || "").replace("T"," ").slice(0,16)} · ${x.trades ?? "—"} ops</span>
+      <span class="tag ${c}">${x.pf !== null ? "PF " + fmt(x.pf) : "rechazar"} ${x.veredicto.slice(0,26)}</span></div>`;
+  }).join("") || '<span class="mini">sin runs todavía</span>';
+  document.querySelectorAll(".hist-item").forEach(el =>
+    el.addEventListener("click", async () => {
+      const res = await (await fetch("/api/run/" + el.dataset.id)).json();
+      if (res.ok) pintarResultado(res);
+    }));
+}
+cargarDatasets();
+cargarHistorial();
+</script>
+</body>
+</html>
